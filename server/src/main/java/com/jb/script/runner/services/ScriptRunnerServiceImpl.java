@@ -20,7 +20,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
     }
 
     @Override
-    public int runScript(MultipartFile script, String command) throws Exception {
+    public void runScript(MultipartFile script, String command) throws Exception {
         try {
             File file = new File("src/main/resources/" + UUID.randomUUID() + ".kts");
             String path = file.getAbsolutePath();
@@ -76,7 +76,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             }
             outputThread.join();
             errorOutputThread.join();
-            return 1;
+            simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(String.valueOf(exitCode), false));
         } catch (IOException | InterruptedException e) {
             throw new Exception(e.getMessage());
         }

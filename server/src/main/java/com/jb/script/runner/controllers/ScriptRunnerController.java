@@ -12,7 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class ScriptRunnerController {
 
-    ScriptRunnerService scriptRunnerService;
+    private final ScriptRunnerService scriptRunnerService;
+
 
     public ScriptRunnerController(ScriptRunnerService scriptRunnerService) {
         this.scriptRunnerService = scriptRunnerService;
@@ -21,12 +22,11 @@ public class ScriptRunnerController {
     @PostMapping("/run")
     public ResponseEntity<?> runScript(@RequestParam String type, @RequestParam("file")MultipartFile script) {
         try {
-            int code = scriptRunnerService.runScript(script, CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)));
-            return ResponseEntity.ok().body(code);
+            scriptRunnerService.runScript(script, CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)));
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
-
     }
 
 
