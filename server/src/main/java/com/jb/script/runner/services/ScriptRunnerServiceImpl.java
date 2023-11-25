@@ -62,6 +62,8 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             } else {
                 System.out.println("File not deleted!");
             }
+            outputThread.join();
+            errorOutputThread.join();
             return exitCode;
         } catch (IOException | InterruptedException e) {
             throw new Exception(e.getMessage());
