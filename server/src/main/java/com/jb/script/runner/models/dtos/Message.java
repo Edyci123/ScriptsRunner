@@ -12,4 +12,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Message {
     private String content;
+    private boolean isError;
 }
