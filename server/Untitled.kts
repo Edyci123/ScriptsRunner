@@ -1,7 +1,5 @@
-#!/usr/bin/env kotlin
-
-val result = repeat(1_000_000) {
-    it * it
+for (i in 1..15) {
+    println("Hello");
 }
 
-println("Script executed successfully.")
+println("Script executed successfully.");
