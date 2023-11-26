@@ -1,9 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { StompSessionProvider } from "react-stomp-hooks";
 import "./App.scss";
 import { Layout } from "./layout/Layout";
-import { HomePage } from "./pages/HomePage/HomePage";
 import { EditorPage } from "./pages/EditorPage/EditorPage";
-import { StompSessionProvider } from "react-stomp-hooks";
+import { HomePage } from "./pages/HomePage/HomePage";
 
 const App = () => {
     return (
