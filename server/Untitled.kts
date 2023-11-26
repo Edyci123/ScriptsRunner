@@ -1,4 +1,4 @@
-for (i in 1..100000) {
+for (i in 1..15) {
     println("Hello");
 }
 
