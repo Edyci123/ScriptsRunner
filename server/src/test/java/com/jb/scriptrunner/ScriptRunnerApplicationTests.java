@@ -1,10 +1,10 @@
-package com.jb.script.runner;
+package com.jb.scriptrunner;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ApplicationTests {
+class ScriptRunnerApplicationTests {
 
 	@Test
 	void contextLoads() {
