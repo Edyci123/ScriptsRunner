@@ -1,8 +1,8 @@
-package com.jb.script.runner.controllers;
+package com.jb.scriptrunner.controllers;
 
-import com.jb.script.runner.models.enums.TypeOfFile;
-import com.jb.script.runner.services.ScriptRunnerService;
-import com.jb.script.runner.utils.CommandsUtil;
+import com.jb.scriptrunner.models.enums.TypeOfFile;
+import com.jb.scriptrunner.services.ScriptRunnerService;
+import com.jb.scriptrunner.utils.CommandsUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;

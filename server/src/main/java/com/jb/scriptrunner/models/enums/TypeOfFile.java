@@ -1,6 +1,6 @@
-package com.jb.script.runner.models.enums;
+package com.jb.scriptrunner.models.enums;
 
-import com.jb.script.runner.utils.exceptions.InvalidFileFormat;
+import com.jb.scriptrunner.utils.exceptions.InvalidFileFormat;
 
 public enum TypeOfFile {
     KTS("KTS"),

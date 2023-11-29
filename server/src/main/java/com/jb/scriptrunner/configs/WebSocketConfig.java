@@ -1,4 +1,4 @@
-package com.jb.script.runner.configs;
+package com.jb.scriptrunner.configs;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

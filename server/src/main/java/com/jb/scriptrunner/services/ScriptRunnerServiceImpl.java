@@ -1,6 +1,6 @@
-package com.jb.script.runner.services;
+package com.jb.scriptrunner.services;
 
-import com.jb.script.runner.models.dtos.Message;
+import com.jb.scriptrunner.models.dtos.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -45,6 +45,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
                         simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(line, false));
                     }
                 } catch (IOException e) {
+                    System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             });
@@ -61,6 +62,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
 
                     }
                 } catch (IOException e) {
+                    System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             });
@@ -78,6 +80,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             errorOutputThread.join();
             simpMessagingTemplate.convertAndSend("/topic/script-output", String.valueOf(exitCode));
         } catch (IOException | InterruptedException e) {
+            System.out.println(e.getMessage());
             throw new Exception(e.getMessage());
         }
 

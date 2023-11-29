@@ -1,5 +1,4 @@
-package com.jb.script.runner.models.dtos;
-
+package com.jb.scriptrunner.models.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

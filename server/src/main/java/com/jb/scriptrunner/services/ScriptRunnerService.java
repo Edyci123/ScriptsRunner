@@ -1,4 +1,4 @@
-package com.jb.script.runner.services;
+package com.jb.scriptrunner.services;
 
 import org.springframework.web.multipart.MultipartFile;
 

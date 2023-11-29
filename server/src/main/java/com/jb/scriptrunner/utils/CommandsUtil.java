@@ -1,7 +1,7 @@
-package com.jb.script.runner.utils;
+package com.jb.scriptrunner.utils;
 
-import com.jb.script.runner.models.enums.TypeOfFile;
-import com.jb.script.runner.utils.exceptions.InvalidFileFormat;
+import com.jb.scriptrunner.models.enums.TypeOfFile;
+import com.jb.scriptrunner.utils.exceptions.InvalidFileFormat;
 
 public class CommandsUtil {
 
