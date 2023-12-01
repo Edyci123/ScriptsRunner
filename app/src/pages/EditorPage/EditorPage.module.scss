@@ -10,38 +10,14 @@
     border: 1px solid black;
 }
 
-.editor {
+.editor-container {
     height: 100%;
     position: relative;
-    .divCont {
-        resize: none;
-        font-size: 14px;
-        padding: 10px;
-        padding-top: 9px;
-        padding-bottom: 0;
-        line-height: 16px;
-        min-height: 700px;
-        width: 100%;
-        padding-left: 30px;
-        border: 2px solid black;
-    }
-    textarea {
-        resize: none;
-        font-size: 14px;
-        padding: 10px;
-        padding-top: 9px;
-        padding-bottom: 0;
-        line-height: 16px;
-        min-height: 700px;
-        width: 100%;
-        padding-left: 30px;
-        border: 2px solid black;
-    }
 
     .index-col {
         overflow: hidden;
         position: absolute;
-        height: 702px;
+        height:693px;
         width: 25px;
         font-size: 14px;
         line-height: 16px;
@@ -52,4 +28,52 @@
         text-align: center;
         border-right: 1px solid black;
     }
+}
+
+.editor {
+    resize: none;
+    font-size: 14px;
+    line-height: 16px;
+    height: 700px;
+    width: 100%;
+    border: 2px solid black;
+    position: relative;
+}
+
+.editor_colors,
+.editor_content {
+    padding: 16px;
+    height: 693px;
+    top: 0;
+    padding: 10px;
+    padding-top: 8px;
+    padding-bottom: 0;
+    padding-left: 30px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    //white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 13px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+/* THE OVERLAYING CONTENTEDITABLE WITH TRANSPARENT TEXT */
+.editor_content {
+    position: absolute;
+    color: transparent; /* Make text invisible */
+}
+.editor_content:focus {
+    outline: 1px solid hsl(220, 16%, 19%);
+}
+/* THE UNDERLAYING ONE WITH HIGHLIGHT COLORS */
+.editor_colors {
+    position: absolute;
+    user-select: none;
+    //z-index: 1;
+}
+
+.editor_colors i {
+    font-style: normal;
 }
