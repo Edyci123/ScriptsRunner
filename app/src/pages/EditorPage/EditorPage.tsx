@@ -2,22 +2,23 @@ import { Button, Grid } from "@mui/material";
 import _ from "lodash";
 import React, { useRef, useState } from "react";
 import styles from "./EditorPage.module.scss";
+import { useSubscription } from "react-stomp-hooks";
 
 export const EditorPage: React.FC = () => {
     const [language, setLanguage] = useState<"kts" | "swift">("kts");
 
     const [content, setContent] = useState("");
+    const [output, setOutput] = useState("");
     const [numRows, setNumRows] = useState(1);
 
     const contentRef = useRef(null);
     const colorRef = useRef(null);
     const indexRef = useRef(null);
 
-    // useSubscription("/topic/script-output", (msg) => {
-    //     console.log(msg.body);
-    //     setOutput((prevOutput) => prevOutput + msg.body);
-    //     setCount((prevCount) => prevCount + 1);
-    // });
+    useSubscription("/topic/script-output", (msg) => {
+        console.log(msg.body);
+        setOutput((prevOutput) => prevOutput + "\n" + msg.body);
+    });
 
     const lang = {
         kts: {
@@ -87,11 +88,18 @@ export const EditorPage: React.FC = () => {
         indexRef.current.scrollTop = contentRef.current.scrollTop;
     };
 
+    const handleRunCode = () => {
+        // @ts-ignore
+        console.log(colorRef.current.innerText);
+    }
+
     return (
         <>
             <Grid className={styles.container} container>
+                <Grid xs={12}>
+                    <Button color="success" onClick={() => handleRunCode()}>Play</Button>
+                </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
-                    <Button color="success">Play</Button>
                     <div ref={indexRef} className={styles["index-col"]}>
                         {_.range(numRows).map((val) => {
                             return <div>{val}</div>;
@@ -119,11 +127,9 @@ export const EditorPage: React.FC = () => {
                     </div>
                 </Grid>
                 <Grid item xs={0.4}></Grid>
-                <Grid
-                    className={styles["editor-container"]}
-                    item
-                    xs={5.8}
-                ></Grid>
+                <Grid className={styles["editor-container"]} item xs={5.8}>
+                    <div className={styles.editor}>{output}</div>
+                </Grid>
             </Grid>
         </>
     );

@@ -4,7 +4,6 @@ import com.jb.scriptrunner.models.dtos.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.UUID;
@@ -20,7 +19,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
     }
 
     @Override
-    public void runScript(MultipartFile script, String command) throws Exception {
+    public void runScript(String script, String command) throws Exception {
         try {
             File file = new File("src/main/resources/" + UUID.randomUUID() + ".kts");
             String path = file.getAbsolutePath();
