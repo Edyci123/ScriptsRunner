@@ -110,10 +110,7 @@ export const EditorPage: React.FC = () => {
 
     useEffect(() => {
         // @ts-ignore
-        outputRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-        });
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }, [output]);
 
     return (
@@ -185,6 +182,7 @@ export const EditorPage: React.FC = () => {
                                     style={{
                                         marginTop: index === 0 ? "8px" : 0,
                                         marginLeft: "10px",
+                                        marginBottom: index === output.length - 1 ? "10px" : 0,
                                     }}
                                     key={index}
                                 >
