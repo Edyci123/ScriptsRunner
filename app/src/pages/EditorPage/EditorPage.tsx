@@ -1,8 +1,8 @@
-import { Button, Grid } from "@mui/material";
+import { Button, CircularProgress, Grid } from "@mui/material";
 import _ from "lodash";
-import React, { useRef, useState } from "react";
-import styles from "./EditorPage.module.scss";
+import React, { useEffect, useRef, useState } from "react";
 import { useSubscription } from "react-stomp-hooks";
+import styles from "./EditorPage.module.scss";
 
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { axios } from "../../services/axios";
@@ -11,16 +11,19 @@ export const EditorPage: React.FC = () => {
     const [language, setLanguage] = useState<"kts" | "swift">("kts");
 
     const [content, setContent] = useState("");
-    const [output, setOutput] = useState("");
+    const [output, setOutput] = useState<
+        Array<{ content: string; typeOfMessage: string }>
+    >([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [numRows, setNumRows] = useState(1);
 
     const contentRef = useRef(null);
     const colorRef = useRef(null);
     const indexRef = useRef(null);
+    const outputRef = useRef(null);
 
     useSubscription("/topic/script-output", (msg) => {
-        console.log(msg.body);
-        setOutput((prevOutput) => prevOutput + "\n" + msg.body);
+        setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
     });
 
     const lang = {
@@ -30,7 +33,7 @@ export const EditorPage: React.FC = () => {
             comm: /((\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*))/g,
             logic: /(%=|%|\-|\+|\*|&amp;{1,2}|\|{1,2}|&lt;=|&gt;=|&lt;|&gt;|!={1,2}|={2,3})/g,
             number: /(?<![a-zA-Z])(\d+(\.\d+)?(e\d+)?)/g,
-            kw: /(?<=^|\s*|)(?<![a-zA-Z0-9])(as|break|class(?!\s*\=)|for|if|\!in|in|interface|\!is|is|null|object|package|return|super|this|throw|true|try|typealias|val|var|when|while|by|catch|constructor|set|setparam|where|actual|abstract|annotation|companion|const|crossinline|data|enum|expect|external|final|infix|inline|inner|internal|lateinit|noinline|open|operator|out|override|private|protected|public|reified|sealed|suspend|tailrec|vararg|field|it|delegate|dynamic|field|file|finally|get|import|init|param|property|receiver|continue|do|else|fun)(?=\b)/g,
+            kw: /(?<=^|\s*|)(?<![a-zA-Z0-9])(as|break|class(?!\s*\=)|for|if|\!in|in|interface|\!is|is|null|object|package|return|super|this|throw|true|try|typealias|val|var|when|while|by|catch|constructor|set|setparam|where|actual|abstract|annotation|companion|const|crossinline|data|enum|expect|external|final|infix|inline|inner|internal|lateinit|noinline|open|operator|out|override|private|println|print|protected|public|reified|sealed|suspend|tailrec|vararg|field|it|delegate|dynamic|field|file|finally|get|import|init|param|property|receiver|continue|do|else|fun)(?=\b)/g,
             round: /(\(|\))/g,
             square: /(\[|\])/g,
             curl: /(\{|\})/g,
@@ -60,7 +63,6 @@ export const EditorPage: React.FC = () => {
                       contentRef.current.innerHTML.split("<div").length
                   )
         );
-
 
         // @ts-ignore
         colorRef.current.scrollTop = contentRef.current.scrollTop;
@@ -92,10 +94,27 @@ export const EditorPage: React.FC = () => {
         indexRef.current.scrollTop = contentRef.current.scrollTop;
     };
 
-    const handleRunCode = () => {
-        // @ts-ignore
-        axios.post("/run", {scriptContent: colorRef.current.innerText }, {params: {type: 'KTS'}});
+    const handleRunCode = async () => {
+        setOutput([]);
+        setIsLoading(true);
+        const res = await axios.post(
+            "/run",
+            // @ts-ignore
+            { scriptContent: colorRef.current.innerText },
+            { params: { type: "KTS" } }
+        );
+
+        console.log(res.data?.uuid);
+        setIsLoading(false);
     };
+
+    useEffect(() => {
+        // @ts-ignore
+        outputRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+        });
+    }, [output]);
 
     return (
         <>
@@ -103,11 +122,18 @@ export const EditorPage: React.FC = () => {
                 <Grid item xs={12}>
                     <Button
                         sx={{ mb: 2 }}
-                        variant="contained"
+                        variant={isLoading ? undefined : "contained"}
                         color="success"
+                        disabled={isLoading}
                         onClick={() => handleRunCode()}
                     >
-                        RUN <PlayArrowIcon />
+                        {isLoading ? (
+                            <CircularProgress color="success" size={20} />
+                        ) : (
+                            <>
+                                RUN <PlayArrowIcon />
+                            </>
+                        )}
                     </Button>
                 </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
@@ -139,7 +165,37 @@ export const EditorPage: React.FC = () => {
                 </Grid>
                 <Grid item xs={0.4}></Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
-                    <div className={styles.output}>{output}</div>
+                    <div ref={outputRef} className={styles.output}>
+                        {output.map((val, index) => {
+                            let className = "output_standard";
+
+                            if (val.typeOfMessage === "ERROR") {
+                                className = "output_error";
+                            }
+                            if (val.typeOfMessage === "EXIT_CODE") {
+                                if (val.content === "0") {
+                                    className = "output_success";
+                                } else {
+                                    className = "output_fail";
+                                }
+                            }
+
+                            return (
+                                <div
+                                    style={{
+                                        marginTop: index === 0 ? "8px" : 0,
+                                        marginLeft: "10px",
+                                    }}
+                                    key={index}
+                                >
+                                    <span className={styles[className]}>
+                                        {`[${val.typeOfMessage}]`}{" "}
+                                    </span>
+                                    {val.content}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </Grid>
             </Grid>
         </>
