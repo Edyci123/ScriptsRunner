@@ -7,7 +7,7 @@ import { HomePage } from "./pages/HomePage/HomePage";
 
 const App = () => {
     return (
-        <StompSessionProvider url="http://localhost:8080/console">
+        <StompSessionProvider url={`${process.env.REACT_APP_SERVER_URL}/console`}>
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Layout />}>

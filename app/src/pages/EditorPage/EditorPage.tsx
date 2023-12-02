@@ -4,6 +4,9 @@ import React, { useRef, useState } from "react";
 import styles from "./EditorPage.module.scss";
 import { useSubscription } from "react-stomp-hooks";
 
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { axios } from "../../services/axios";
+
 export const EditorPage: React.FC = () => {
     const [language, setLanguage] = useState<"kts" | "swift">("kts");
 
@@ -47,9 +50,6 @@ export const EditorPage: React.FC = () => {
         const langObj = lang[language];
         let html = e.currentTarget.innerHTML;
 
-        console.log("HTML", html);
-        console.log("TEXT", e.currentTarget.innerText);
-
         setNumRows(
             // @ts-ignore
             contentRef.current.innerText === "\n"
@@ -60,6 +60,11 @@ export const EditorPage: React.FC = () => {
                       contentRef.current.innerHTML.split("<div").length
                   )
         );
+        // @ts-ignore
+        console.log("HTML", contentRef.current.innerHTML)
+        // @ts-ignore
+        console.log("HTML", contentRef.current.innerText)
+
 
         // @ts-ignore
         colorRef.current.scrollTop = contentRef.current.scrollTop;
@@ -74,9 +79,12 @@ export const EditorPage: React.FC = () => {
 
         // @ts-ignore
         contentRef.current.previousElementSibling.innerHTML = html
-            .replaceAll('"caret<i class="js_logi">-</i>color: black;"</i>>', "")
             .replaceAll(
-                '"caret<i class="js_logi">-</i>color: rgb<i class="js_pare">(</i><i class="js_numb">0</i>, <i class="js_numb">0</i>, <i class="js_numb">0</i><i class="js_pare">)</i>;"</i>>',
+                '"caret<i class="kts_logic">-</i>color: black;"</i>>',
+                ""
+            )
+            .replaceAll(
+                '"caret<i class="kts_logic">-</i>color: rgb<i class="kts_round">(</i><i class="kts_number">0</i>, <i class="kts_number">0</i>, <i class="kts_number">0</i><i class="kts_round">)</i>;"</i>>',
                 ""
             );
     };
@@ -91,18 +99,27 @@ export const EditorPage: React.FC = () => {
     const handleRunCode = () => {
         // @ts-ignore
         console.log(colorRef.current.innerText);
-    }
+        // @ts-ignore
+        axios.post("/run", {scriptContent: colorRef.current.innerText }, {params: {type: 'KTS'}});
+    };
 
     return (
         <>
             <Grid className={styles.container} container>
-                <Grid xs={12}>
-                    <Button color="success" onClick={() => handleRunCode()}>Play</Button>
+                <Grid item xs={12}>
+                    <Button
+                        sx={{ mb: 2 }}
+                        variant="contained"
+                        color="success"
+                        onClick={() => handleRunCode()}
+                    >
+                        RUN <PlayArrowIcon />
+                    </Button>
                 </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
                     <div ref={indexRef} className={styles["index-col"]}>
                         {_.range(numRows).map((val) => {
-                            return <div>{val}</div>;
+                            return <div key={val}>{val}</div>;
                         })}
                     </div>
 
@@ -128,7 +145,7 @@ export const EditorPage: React.FC = () => {
                 </Grid>
                 <Grid item xs={0.4}></Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
-                    <div className={styles.editor}>{output}</div>
+                    <div className={styles.output}>{output}</div>
                 </Grid>
             </Grid>
         </>

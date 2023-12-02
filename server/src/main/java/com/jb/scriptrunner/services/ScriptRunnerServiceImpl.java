@@ -25,7 +25,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             String path = file.getAbsolutePath();
 
             try (OutputStream outputStream = new FileOutputStream(file)) {
-                outputStream.write(script.getBytes());
+                outputStream.write(script.replaceAll("\\u00a0", " ").getBytes());
             }
 
             command += " " + path;

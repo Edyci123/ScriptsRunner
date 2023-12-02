@@ -40,6 +40,17 @@
     position: relative;
 }
 
+.output {
+    resize: none;
+    font-size: 14px;
+    line-height: 16px;
+    height: 700px;
+    width: 100%;
+    border: 2px solid black;
+    position: relative;
+    overflow-y: scroll;
+}
+
 .editor_colors,
 .editor_content {
     padding: 16px;
