@@ -6,7 +6,8 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@monaco-editor/react": "^4.6.0",
-    "@mui/material": "^5.14.18",
+    "@mui/icons-material": "^5.14.19",
+    "@mui/material": "^5.14.19",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -14,8 +15,11 @@
     "@types/node": "^16.18.64",
     "@types/react": "^18.2.38",
     "@types/react-dom": "^18.2.17",
+    "axios": "^1.6.2",
+    "lodash": "^4.17.21",
     "net": "^1.0.2",
     "react": "^18.2.0",
+    "react-contenteditable": "^3.3.7",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
     "react-scripts": "5.0.1",
@@ -52,6 +56,7 @@
     ]
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.202",
     "@types/sockjs-client": "^1.5.4",
     "@types/stompjs": "^2.3.9"
   }

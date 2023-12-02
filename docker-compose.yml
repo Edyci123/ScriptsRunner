@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  app:
+    image: 'script-runner:script-runner-docker'
+    ports:
+      - 8080:8080
+    build:
+      context: ./server/
+    container_name: script-runner
+    volumes:
+      - ./server/:/server/.

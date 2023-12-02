@@ -1,13 +1,53 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+}
+
+div {
+  caret-color: black;
+}
+
+/* JS */
+i.kts_quote {
+    color: hsl(50, 75%, 70%);
+}
+i.kts_decl {
+    color: hsl(200, 75%, 70%);
+}
+i.kts_kw {
+    color: hsl(300, 75%, 70%);
+}
+i.kts_round {
+    color: hsl(210, 75%, 70%);
+}
+i.kts_square {
+    color: hsl(230, 75%, 70%);
+}
+i.kts_curl {
+    color: hsl(250, 75%, 70%);
+}
+i.kts_number {
+    color: hsl(100, 75%, 70%);
+}
+i.kts_logic {
+    color: hsl(200, 75%, 70%);
+}
+i.kts_equal {
+    color: hsl(200, 75%, 70%);
+}
+i.kts_comm {
+    color: hsl(200, 10%, 45%);
+    font-style: italic;
+}
+i.kts_comm > * {
+    color: inherit;
 }
