@@ -60,10 +60,6 @@ export const EditorPage: React.FC = () => {
                       contentRef.current.innerHTML.split("<div").length
                   )
         );
-        // @ts-ignore
-        console.log("HTML", contentRef.current.innerHTML)
-        // @ts-ignore
-        console.log("HTML", contentRef.current.innerText)
 
 
         // @ts-ignore
@@ -97,8 +93,6 @@ export const EditorPage: React.FC = () => {
     };
 
     const handleRunCode = () => {
-        // @ts-ignore
-        console.log(colorRef.current.innerText);
         // @ts-ignore
         axios.post("/run", {scriptContent: colorRef.current.innerText }, {params: {type: 'KTS'}});
     };
