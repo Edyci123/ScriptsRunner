@@ -16,6 +16,8 @@ export const EditorPage: React.FC = () => {
     >([]);
     const [isLoading, setIsLoading] = useState(false);
     const [numRows, setNumRows] = useState(1);
+    const [currentUUID, setCurrentUUID] = useState("");
+    const [execTime, setExecTime] = useState(0);
 
     const contentRef = useRef(null);
     const colorRef = useRef(null);
@@ -96,6 +98,7 @@ export const EditorPage: React.FC = () => {
 
     const handleRunCode = async () => {
         setOutput([]);
+        setCurrentUUID("");
         setIsLoading(true);
         const res = await axios.post(
             "/run",
@@ -104,7 +107,8 @@ export const EditorPage: React.FC = () => {
             { params: { type: "KTS" } }
         );
 
-        console.log(res.data?.uuid);
+        console.log(res.data);
+        setCurrentUUID(res.data?.uuid);
         setIsLoading(false);
     };
 
@@ -176,13 +180,19 @@ export const EditorPage: React.FC = () => {
                                     className = "output_fail";
                                 }
                             }
+                            if (currentUUID && val.typeOfMessage === "ERROR") {
+                                console.log(val.content.split(currentUUID).at(1)?.split(":").at(1));
+                            }
 
                             return (
                                 <div
                                     style={{
                                         marginTop: index === 0 ? "8px" : 0,
                                         marginLeft: "10px",
-                                        marginBottom: index === output.length - 1 ? "10px" : 0,
+                                        marginBottom:
+                                            index === output.length - 1
+                                                ? "10px"
+                                                : 0,
                                     }}
                                     key={index}
                                 >

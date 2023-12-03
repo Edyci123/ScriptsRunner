@@ -1,6 +1,7 @@
 package com.jb.scriptrunner.services;
 
 import com.jb.scriptrunner.models.dtos.Message;
+import com.jb.scriptrunner.models.dtos.ScriptRunResponse;
 import com.jb.scriptrunner.models.enums.TypeOfMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -37,7 +38,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
     }
 
     @Override
-    public UUID runScript(String script, String command) throws Exception {
+    public ScriptRunResponse runScript(String script, String command) throws Exception {
         try {
             UUID uuid = UUID.randomUUID();
             File file = new File("src/main/resources/" + uuid + ".kts");
@@ -49,6 +50,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
 
             command += " " + path;
 
+            long startTime = System.currentTimeMillis();
             Process process = new ProcessBuilder(command.split("\\s")).start();
 
             Thread outputThread = new Thread(() -> {
@@ -71,7 +73,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             outputThread.join();
             errorOutputThread.join();
             simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(String.valueOf(exitCode), TypeOfMessage.EXIT_CODE));
-            return uuid;
+            return new ScriptRunResponse(uuid, System.currentTimeMillis() - startTime);
         } catch (IOException | InterruptedException e) {
             System.out.println(e.getMessage());
             throw new Exception(e.getMessage());

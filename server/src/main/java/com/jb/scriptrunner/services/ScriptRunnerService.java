@@ -1,9 +1,9 @@
 package com.jb.scriptrunner.services;
 
-import java.util.UUID;
+import com.jb.scriptrunner.models.dtos.ScriptRunResponse;
 
 public abstract class ScriptRunnerService {
 
-    public abstract UUID runScript(String script, String command) throws Exception;
+    public abstract ScriptRunResponse runScript(String script, String command) throws Exception;
 
 }

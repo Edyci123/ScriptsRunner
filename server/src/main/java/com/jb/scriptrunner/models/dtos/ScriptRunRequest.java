@@ -11,6 +11,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileUUIDResponse {
+public class ScriptRunRequest {
+    private String scriptContent;
     private UUID uuid;
 }
