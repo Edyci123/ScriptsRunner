@@ -1,9 +1,7 @@
 import {
     Button,
     CircularProgress,
-    Grid,
-    ToggleButton,
-    ToggleButtonGroup,
+    Grid
 } from "@mui/material";
 import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
@@ -107,7 +105,6 @@ export const EditorPage: React.FC = () => {
     const handleRunCode = async () => {
         // @ts-ignore
         let content: string[] = colorRef.current.innerText.split("\n");
-        console.log(content);
         let trimmedContent: string[] = [];
         let cnt = 0;
         content.forEach((val) => {
@@ -121,7 +118,6 @@ export const EditorPage: React.FC = () => {
                 trimmedContent.push(val);
             }
         });
-        console.log("Trimmed", trimmedContent);
         setOutput([]);
         setCurrentUUID("");
         setIsLoading(true);
