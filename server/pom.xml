@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.jb</groupId>
-	<artifactId>script-runner</artifactId>
+	<artifactId>scriptRunRequest-runner</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>script-runner</name>
+	<name>scriptRunRequest-runner</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>

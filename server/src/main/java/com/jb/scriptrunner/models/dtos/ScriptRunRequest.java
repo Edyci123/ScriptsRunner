@@ -1,16 +1,17 @@
 package com.jb.scriptrunner.models.dtos;
 
-import com.jb.scriptrunner.models.enums.TypeOfMessage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class Message {
-    private String content;
-    private TypeOfMessage typeOfMessage;
+@NoArgsConstructor
+public class ScriptRunRequest {
+    private String scriptContent;
+    private UUID uuid;
 }

@@ -1,6 +1,8 @@
 package com.jb.scriptrunner.services;
 
 import com.jb.scriptrunner.models.dtos.Message;
+import com.jb.scriptrunner.models.dtos.ScriptRunResponse;
+import com.jb.scriptrunner.models.enums.TypeOfMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,28 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    @Override
-    public void runScript(String script, String command) throws Exception {
+    private void sendMessages(InputStream inputStream, TypeOfMessage typeOfMessage) {
         try {
-            File file = new File("src/main/resources/" + UUID.randomUUID() + ".kts");
+            InputStreamReader errorStreamReader = new InputStreamReader(inputStream);
+            BufferedReader bufferedReader = new BufferedReader(errorStreamReader);
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                System.out.println(line);
+                simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(line, typeOfMessage));
+
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public ScriptRunResponse runScript(String script, String command) throws Exception {
+        try {
+            UUID uuid = UUID.randomUUID();
+            File file = new File("src/main/resources/" + uuid + ".kts");
             String path = file.getAbsolutePath();
 
             try (OutputStream outputStream = new FileOutputStream(file)) {
@@ -30,40 +50,15 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
 
             command += " " + path;
 
-            Process process = new ProcessBuilder(command.split("\\s"))
-                    .start();
+            long startTime = System.currentTimeMillis();
+            Process process = new ProcessBuilder(command.split("\\s")).start();
 
             Thread outputThread = new Thread(() -> {
-                try {
-                    InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        System.out.println(line);
-                        simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(line, false));
-                    }
-                } catch (IOException e) {
-                    System.out.println(e.getMessage());
-                    throw new RuntimeException(e);
-                }
+                sendMessages(process.getInputStream(), TypeOfMessage.OUTPUT);
             });
 
             Thread errorOutputThread = new Thread(() -> {
-                try {
-                    InputStreamReader errorStreamReader = new InputStreamReader(process.getErrorStream());
-                    BufferedReader bufferedReader = new BufferedReader(errorStreamReader);
-
-                    String line;
-                    while((line = bufferedReader.readLine()) != null) {
-                        System.out.println(line);
-                        simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(line, true));
-
-                    }
-                } catch (IOException e) {
-                    System.out.println(e.getMessage());
-                    throw new RuntimeException(e);
-                }
+                sendMessages(process.getErrorStream(), TypeOfMessage.ERROR);
             });
 
             outputThread.start();
@@ -77,11 +72,11 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             }
             outputThread.join();
             errorOutputThread.join();
-            simpMessagingTemplate.convertAndSend("/topic/script-output", String.valueOf(exitCode));
+            simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(String.valueOf(exitCode), TypeOfMessage.EXIT_CODE));
+            return new ScriptRunResponse(uuid, System.currentTimeMillis() - startTime);
         } catch (IOException | InterruptedException e) {
             System.out.println(e.getMessage());
             throw new Exception(e.getMessage());
         }
-
     }
 }

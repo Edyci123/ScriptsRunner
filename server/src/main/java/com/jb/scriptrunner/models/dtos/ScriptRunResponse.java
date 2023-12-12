@@ -5,10 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Script {
-    private String scriptContent;
+public class ScriptRunResponse {
+    private UUID uuid;
+    private long execTime;
 }

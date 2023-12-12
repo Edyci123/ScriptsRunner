@@ -17,7 +17,7 @@
     .index-col {
         overflow: hidden;
         position: absolute;
-        height:693px;
+        height: 693px;
         width: 25px;
         font-size: 14px;
         line-height: 16px;
@@ -49,6 +49,8 @@
     border: 2px solid black;
     position: relative;
     overflow-y: scroll;
+    font-weight: 550;
+    white-space: pre-wrap;
 }
 
 .editor_colors,
@@ -63,28 +65,48 @@
     left: 0;
     right: 0;
     bottom: 0;
-    //white-space: pre-wrap;
     font-family: monospace;
     font-size: 13px;
     overflow-x: scroll;
     overflow-y: scroll;
+    white-space: pre-wrap;
+    font-weight: 550;
 }
 
-/* THE OVERLAYING CONTENTEDITABLE WITH TRANSPARENT TEXT */
 .editor_content {
     position: absolute;
-    color: transparent; /* Make text invisible */
+    color: transparent;
 }
 .editor_content:focus {
     outline: 1px solid hsl(220, 16%, 19%);
 }
-/* THE UNDERLAYING ONE WITH HIGHLIGHT COLORS */
+
 .editor_colors {
     position: absolute;
     user-select: none;
-    //z-index: 1;
 }
 
 .editor_colors i {
     font-style: normal;
+}
+
+.output_error {
+    color: #800614;
+}
+
+.row_error {
+    background-color: #800614;
+    color: #fefefe;
+}
+
+.output_standard {
+    color: #6b8acc;
+}
+
+.output_fail {
+    color: #800614;
+}
+
+.output_success {
+    color: #56ae57;
 }
