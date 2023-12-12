@@ -18,11 +18,13 @@ export const EditorPage: React.FC = () => {
     const [numRows, setNumRows] = useState(1);
     const [currentUUID, setCurrentUUID] = useState("");
     const [execTime, setExecTime] = useState(0);
+    const [completed, setCompleted] = useState(false);
 
     const contentRef = useRef(null);
     const colorRef = useRef(null);
     const indexRef = useRef(null);
     const outputRef = useRef(null);
+    const [errors, setErrors] = useState<number[]>([]);
 
     useSubscription("/topic/script-output", (msg) => {
         setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
@@ -47,11 +49,13 @@ export const EditorPage: React.FC = () => {
         event.preventDefault();
         const clipboardData = event.clipboardData;
         const pastedData = clipboardData.getData("text/plain");
-        console.log("PASTE", pastedData);
         document.execCommand("insertText", false, pastedData);
     };
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+        if (errors.length !== 0) {
+            setErrors([]);
+        }
         const langObj = lang[language];
         let html = e.currentTarget.innerHTML;
 
@@ -76,7 +80,6 @@ export const EditorPage: React.FC = () => {
                 `<i class="${language}_${key}">$1</i>`
             );
         });
-
         // @ts-ignore
         contentRef.current.previousElementSibling.innerHTML = html
             .replaceAll(
@@ -97,18 +100,34 @@ export const EditorPage: React.FC = () => {
     };
 
     const handleRunCode = async () => {
+        // @ts-ignore
+        let content: string[] = colorRef.current.innerText.split("\n");
+        setCompleted(false);
+        let trimmedContent = "";
+        let cnt = 0;
+        content.forEach((val, index) => {
+            if (val === "") {
+                cnt++;
+                if (cnt % 2 === 1) {
+                    trimmedContent = trimmedContent + "\n";
+                }
+            } else {
+                cnt = 0;
+                trimmedContent =
+                    trimmedContent + (index === 0 ? "" : "\n") + val;
+            }
+        });
         setOutput([]);
         setCurrentUUID("");
         setIsLoading(true);
         const res = await axios.post(
             "/run",
             // @ts-ignore
-            { scriptContent: colorRef.current.innerText },
+            { scriptContent: trimmedContent },
             { params: { type: "KTS" } }
         );
-
-        console.log(res.data);
         setCurrentUUID(res.data?.uuid);
+        setCompleted(true);
         setIsLoading(false);
     };
 
@@ -116,6 +135,24 @@ export const EditorPage: React.FC = () => {
         // @ts-ignore
         outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }, [output]);
+
+    useEffect(() => {
+        if (completed) {
+            output.forEach((val, index) => {
+                if (currentUUID && val.typeOfMessage === "ERROR") {
+                    let newError = val.content
+                        .split(currentUUID)
+                        .at(1)
+                        ?.split(":")
+                        .at(1);
+                    if (newError && errors.includes(+newError) === false) {
+                        errors.push(+newError);
+                        setErrors([...errors]);
+                    }
+                }
+            });
+        }
+    }, [completed]);
 
     return (
         <>
@@ -140,7 +177,18 @@ export const EditorPage: React.FC = () => {
                 <Grid className={styles["editor-container"]} item xs={5.8}>
                     <div ref={indexRef} className={styles["index-col"]}>
                         {_.range(numRows).map((val) => {
-                            return <div key={val}>{val}</div>;
+                            return (
+                                <div
+                                    className={
+                                        errors.includes(val + 1)
+                                            ? styles.row_error
+                                            : undefined
+                                    }
+                                    key={val}
+                                >
+                                    {val}
+                                </div>
+                            );
                         })}
                     </div>
 
@@ -179,9 +227,6 @@ export const EditorPage: React.FC = () => {
                                 } else {
                                     className = "output_fail";
                                 }
-                            }
-                            if (currentUUID && val.typeOfMessage === "ERROR") {
-                                console.log(val.content.split(currentUUID).at(1)?.split(":").at(1));
                             }
 
                             return (

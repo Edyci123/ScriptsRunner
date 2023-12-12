@@ -17,7 +17,7 @@
     .index-col {
         overflow: hidden;
         position: absolute;
-        height:693px;
+        height: 693px;
         width: 25px;
         font-size: 14px;
         line-height: 16px;
@@ -75,7 +75,7 @@
 
 .editor_content {
     position: absolute;
-    color: transparent; 
+    color: transparent;
 }
 .editor_content:focus {
     outline: 1px solid hsl(220, 16%, 19%);
@@ -94,8 +94,13 @@
     color: #800614;
 }
 
+.row_error {
+    background-color: #800614;
+    color: #fefefe;
+}
+
 .output_standard {
-    color: #6b8acc
+    color: #6b8acc;
 }
 
 .output_fail {

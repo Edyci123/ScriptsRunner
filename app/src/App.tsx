@@ -6,6 +6,7 @@ import { EditorPage } from "./pages/EditorPage/EditorPage";
 import { HomePage } from "./pages/HomePage/HomePage";
 
 const App = () => {
+    
     return (
         <StompSessionProvider url={`${process.env.REACT_APP_SERVER_URL}/console`}>
             <BrowserRouter>
