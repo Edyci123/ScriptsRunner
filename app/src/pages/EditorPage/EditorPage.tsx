@@ -1,4 +1,10 @@
-import { Button, CircularProgress, Grid } from "@mui/material";
+import {
+    Button,
+    CircularProgress,
+    Grid,
+    ToggleButton,
+    ToggleButtonGroup,
+} from "@mui/material";
 import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { useSubscription } from "react-stomp-hooks";
@@ -17,7 +23,6 @@ export const EditorPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [numRows, setNumRows] = useState(1);
     const [currentUUID, setCurrentUUID] = useState("");
-    const [execTime, setExecTime] = useState(0);
     const [completed, setCompleted] = useState(false);
 
     const contentRef = useRef(null);
@@ -102,7 +107,6 @@ export const EditorPage: React.FC = () => {
     const handleRunCode = async () => {
         // @ts-ignore
         let content: string[] = colorRef.current.innerText.split("\n");
-        setCompleted(false);
         let trimmedContent = "";
         let cnt = 0;
         content.forEach((val, index) => {
@@ -151,28 +155,48 @@ export const EditorPage: React.FC = () => {
                     }
                 }
             });
+            setCompleted(false);
         }
     }, [completed]);
+
+    useEffect(() => {
+        if (completed === false && errors.length > 0) {
+            let scrollTo = 10 * Math.min(...errors);
+
+            // @ts-ignore
+            if (scrollTo > contentRef.current.scrollHeight) {
+                // @ts-ignore
+                scrollTo = contentRef.current.scrollHeight;
+            }
+
+            // @ts-ignore
+            colorRef.current.scrollTop = contentRef.current.scrollTop =
+                scrollTo;
+        }
+    }, [completed, errors]);
 
     return (
         <>
             <Grid className={styles.container} container>
                 <Grid item xs={12}>
-                    <Button
-                        sx={{ mb: 2 }}
-                        variant={isLoading ? undefined : "contained"}
-                        color="success"
-                        disabled={isLoading}
-                        onClick={() => handleRunCode()}
-                    >
-                        {isLoading ? (
-                            <CircularProgress color="success" size={20} />
-                        ) : (
-                            <>
-                                RUN <PlayArrowIcon />
-                            </>
-                        )}
-                    </Button>
+                    <div>
+                        <Button
+                            sx={{ mb: 2 }}
+                            variant={isLoading ? undefined : "contained"}
+                            color="success"
+                            disabled={isLoading}
+                            onClick={() => handleRunCode()}
+                        >
+                            {isLoading ? (
+                                <CircularProgress color="success" size={20} />
+                            ) : (
+                                <>
+                                    RUN <PlayArrowIcon />
+                                </>
+                            )}
+                        </Button>
+                        <div></div>
+                    </div>
                 </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
                     <div ref={indexRef} className={styles["index-col"]}>
