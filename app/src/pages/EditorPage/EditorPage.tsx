@@ -71,7 +71,7 @@ export const EditorPage: React.FC = () => {
                 : Math.max(
                       1,
                       // @ts-ignore
-                      contentRef.current.innerHTML.split("<div").length
+                      contentRef.current.innerHTML.split("<div").filter(val => val !== '').length
                   )
         );
 
@@ -107,27 +107,28 @@ export const EditorPage: React.FC = () => {
     const handleRunCode = async () => {
         // @ts-ignore
         let content: string[] = colorRef.current.innerText.split("\n");
-        let trimmedContent = "";
+        console.log(content);
+        let trimmedContent: string[] = [];
         let cnt = 0;
-        content.forEach((val, index) => {
-            if (val === "") {
+        content.forEach((val) => {
+            if (val === '') {
                 cnt++;
                 if (cnt % 2 === 1) {
-                    trimmedContent = trimmedContent + "\n";
+                    trimmedContent.push("");
                 }
             } else {
                 cnt = 0;
-                trimmedContent =
-                    trimmedContent + (index === 0 ? "" : "\n") + val;
+                trimmedContent.push(val);
             }
         });
+        console.log("Trimmed", trimmedContent);
         setOutput([]);
         setCurrentUUID("");
         setIsLoading(true);
         const res = await axios.post(
             "/run",
             // @ts-ignore
-            { scriptContent: trimmedContent },
+            { scriptContent: trimmedContent.join("\n") },
             { params: { type: "KTS" } }
         );
         setCurrentUUID(res.data?.uuid);
