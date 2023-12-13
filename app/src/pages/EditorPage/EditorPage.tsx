@@ -39,7 +39,7 @@ export const EditorPage: React.FC = () => {
             quote: /((&#39;.*?&#39;)|(&#34;.*?&#34;)|(".*?(?<!\\)")|('.*?(?<!\\)')|`)/g,
             comm: /((\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*))/g,
             logic: /(%=|%|\-|\+|\*|&amp;{1,2}|\|{1,2}|&lt;=|&gt;=|&lt;|&gt;|!={1,2}|={2,3})/g,
-            number: /(?<![a-zA-Z])(\d+(\.\d+)?(e\d+)?)/g,
+            number: /(?<![a-zA-Z1-9])(\d+(\.\d+)?(e\d+)?)/g,
             kw: /(?<=^|\s*|)(?<![a-zA-Z0-9])(as|break|class(?!\s*\=)|for|if|\!in|in|interface|\!is|is|null|object|package|return|super|this|throw|true|try|typealias|val|var|when|while|by|catch|constructor|set|setparam|where|actual|abstract|annotation|companion|const|crossinline|data|enum|expect|external|final|infix|inline|inner|internal|lateinit|noinline|open|operator|out|override|private|println|print|protected|public|reified|sealed|suspend|tailrec|vararg|field|it|delegate|dynamic|field|file|finally|get|import|init|param|property|receiver|continue|do|else|fun)(?=\b)/g,
             round: /(\(|\))/g,
             square: /(\[|\])/g,
@@ -98,6 +98,8 @@ export const EditorPage: React.FC = () => {
     const handleScroll = () => {
         // @ts-ignore
         colorRef.current.scrollTop = contentRef.current.scrollTop;
+        // @ts-ignore
+        colorRef.current.scrollLeft = contentRef.current.scrollLeft;
         // @ts-ignore
         indexRef.current.scrollTop = contentRef.current.scrollTop;
     };
@@ -215,6 +217,7 @@ export const EditorPage: React.FC = () => {
 
                     <div className={styles.editor}>
                         <div
+                            contentEditable={true}
                             ref={colorRef}
                             className={styles.editor_colors}
                         ></div>
@@ -227,6 +230,12 @@ export const EditorPage: React.FC = () => {
                             onPaste={handlePaste}
                             onScroll={handleScroll}
                             onInput={handleInput}
+                            onKeyDown={(e) => {
+                                if (e.key === "Tab") {
+                                    e.preventDefault();
+                                    document.execCommand('insertHTML', false, '&#009');
+                                }
+                            }}
                             data-gramm="false"
                             className={styles.editor_content}
                             dangerouslySetInnerHTML={{ __html: content }}

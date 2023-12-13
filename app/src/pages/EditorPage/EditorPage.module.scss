@@ -23,7 +23,6 @@
         line-height: 16px;
         padding-top: 10px;
         left: 0;
-        // overflow-y: scroll;
         padding-left: 3px;
         text-align: center;
         border-right: 1px solid black;
@@ -48,9 +47,9 @@
     width: 100%;
     border: 2px solid black;
     position: relative;
-    overflow-y: scroll;
+    overflow-y: auto;
     font-weight: 550;
-    white-space: pre-wrap;
+    white-space: nowrap;
 }
 
 .editor_colors,
@@ -61,15 +60,17 @@
     padding: 10px;
     padding-top: 8px;
     padding-bottom: 0;
-    padding-left: 30px;
+    margin-left: 27px;
+    border-left: 0;
     left: 0;
     right: 0;
     bottom: 0;
     font-family: monospace;
     font-size: 13px;
-    overflow-x: scroll;
-    overflow-y: scroll;
-    white-space: pre-wrap;
+    overflow-x: auto;
+    overflow-y: auto;
+    //overflow-wrap: normal;
+    white-space: nowrap;
     font-weight: 550;
 }
 
