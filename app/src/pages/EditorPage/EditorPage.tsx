@@ -7,9 +7,11 @@ import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { useSubscription } from "react-stomp-hooks";
 import styles from "./EditorPage.module.scss";
-
+import { v4 as uuidv4 } from 'uuid';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { axios } from "../../services/axios";
+
+const currentUUID = uuidv4();
 
 export const EditorPage: React.FC = () => {
     const [language, setLanguage] = useState<"kts" | "swift">("kts");
@@ -20,7 +22,7 @@ export const EditorPage: React.FC = () => {
     >([]);
     const [isLoading, setIsLoading] = useState(false);
     const [numRows, setNumRows] = useState(1);
-    const [currentUUID, setCurrentUUID] = useState("");
+    
     const [completed, setCompleted] = useState(false);
 
     const contentRef = useRef(null);
@@ -29,7 +31,7 @@ export const EditorPage: React.FC = () => {
     const outputRef = useRef(null);
     const [errors, setErrors] = useState<number[]>([]);
 
-    useSubscription("/topic/script-output", (msg) => {
+    useSubscription("/topic/script-output/" + currentUUID, (msg) => {
         setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
     });
 
@@ -39,8 +41,8 @@ export const EditorPage: React.FC = () => {
             quote: /((&#39;.*?&#39;)|(&#34;.*?&#34;)|(".*?(?<!\\)")|('.*?(?<!\\)')|`)/g,
             comm: /((\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*))/g,
             logic: /(%=|%|\-|\+|\*|&amp;{1,2}|\|{1,2}|&lt;=|&gt;=|&lt;|&gt;|!={1,2}|={2,3})/g,
-            number: /(?<![a-zA-Z])(\d+(\.\d+)?(e\d+)?)/g,
-            kw: /(?<=^|\s*|)(?<![a-zA-Z0-9])(as|break|class(?!\s*\=)|for|if|\!in|in|interface|\!is|is|null|object|package|return|super|this|throw|true|try|typealias|val|var|when|while|by|catch|constructor|set|setparam|where|actual|abstract|annotation|companion|const|crossinline|data|enum|expect|external|final|infix|inline|inner|internal|lateinit|noinline|open|operator|out|override|private|println|print|protected|public|reified|sealed|suspend|tailrec|vararg|field|it|delegate|dynamic|field|file|finally|get|import|init|param|property|receiver|continue|do|else|fun)(?=\b)/g,
+            number: /(?<![a-zA-Z1-9_])(\d+(\.\d+)?(e\d+)?)/g,
+            kw: /(?<=^|\s*|)(?<![a-zA-Z0-9_])(as|break|class(?!\s*\=)|for|if|\!in|in|interface|\!is|is|null|object|package|return|super|this|throw|true|try|typealias|val|var|when|while|by|catch|constructor|set|setparam|where|actual|abstract|annotation|companion|const|crossinline|data|enum|expect|external|final|infix|inline|inner|internal|lateinit|noinline|open|operator|out|override|private|println|print|protected|public|reified|sealed|suspend|tailrec|vararg|field|it|delegate|dynamic|field|file|finally|get|import|init|param|property|receiver|continue|do|else|fun)(?=\b)/g,
             round: /(\(|\))/g,
             square: /(\[|\])/g,
             curl: /(\{|\})/g,
@@ -99,6 +101,8 @@ export const EditorPage: React.FC = () => {
         // @ts-ignore
         colorRef.current.scrollTop = contentRef.current.scrollTop;
         // @ts-ignore
+        colorRef.current.scrollLeft = contentRef.current.scrollLeft;
+        // @ts-ignore
         indexRef.current.scrollTop = contentRef.current.scrollTop;
     };
 
@@ -119,15 +123,13 @@ export const EditorPage: React.FC = () => {
             }
         });
         setOutput([]);
-        setCurrentUUID("");
         setIsLoading(true);
-        const res = await axios.post(
+        await axios.post(
             "/run",
             // @ts-ignore
-            { scriptContent: trimmedContent.join("\n") },
+            { scriptContent: trimmedContent.join("\n"), uuid: currentUUID},
             { params: { type: "KTS" } }
         );
-        setCurrentUUID(res.data?.uuid);
         setCompleted(true);
         setIsLoading(false);
     };
@@ -215,6 +217,7 @@ export const EditorPage: React.FC = () => {
 
                     <div className={styles.editor}>
                         <div
+                            contentEditable={true}
                             ref={colorRef}
                             className={styles.editor_colors}
                         ></div>
@@ -227,6 +230,12 @@ export const EditorPage: React.FC = () => {
                             onPaste={handlePaste}
                             onScroll={handleScroll}
                             onInput={handleInput}
+                            onKeyDown={(e) => {
+                                if (e.key === "Tab") {
+                                    e.preventDefault();
+                                    document.execCommand('insertHTML', false, "    ");
+                                }
+                            }}
                             data-gramm="false"
                             className={styles.editor_content}
                             dangerouslySetInnerHTML={{ __html: content }}

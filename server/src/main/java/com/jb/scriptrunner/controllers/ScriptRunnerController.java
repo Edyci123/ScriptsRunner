@@ -21,12 +21,11 @@ public class ScriptRunnerController {
     @PostMapping("/run")
     public ResponseEntity<?> runScript(@RequestParam String type, @RequestBody ScriptRunRequest scriptRunRequest) {
         try {
-            ScriptRunResponse scriptRunResponse = scriptRunnerService.runScript(scriptRunRequest.getScriptContent(), CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)));
+            System.out.println(scriptRunRequest.getUuid());
+            ScriptRunResponse scriptRunResponse = scriptRunnerService.runScript(scriptRunRequest.getUuid(), scriptRunRequest.getScriptContent(), CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)));
             return ResponseEntity.ok().body(scriptRunResponse);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
-
-
 }

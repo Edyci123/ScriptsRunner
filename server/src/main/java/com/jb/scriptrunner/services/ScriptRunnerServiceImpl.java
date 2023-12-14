@@ -20,7 +20,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    private void sendMessages(InputStream inputStream, TypeOfMessage typeOfMessage) {
+    private void sendMessages(UUID uuid, InputStream inputStream, TypeOfMessage typeOfMessage) {
         try {
             InputStreamReader errorStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(errorStreamReader);
@@ -28,7 +28,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 System.out.println(line);
-                simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(line, typeOfMessage));
+                simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(line, typeOfMessage));
 
             }
         } catch (IOException e) {
@@ -38,9 +38,8 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
     }
 
     @Override
-    public ScriptRunResponse runScript(String script, String command) throws Exception {
+    public ScriptRunResponse runScript(UUID uuid, String script, String command) throws Exception {
         try {
-            UUID uuid = UUID.randomUUID();
             File file = new File("src/main/resources/" + uuid + ".kts");
             String path = file.getAbsolutePath();
 
@@ -54,11 +53,11 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             Process process = new ProcessBuilder(command.split("\\s")).start();
 
             Thread outputThread = new Thread(() -> {
-                sendMessages(process.getInputStream(), TypeOfMessage.OUTPUT);
+                sendMessages(uuid, process.getInputStream(), TypeOfMessage.OUTPUT);
             });
 
             Thread errorOutputThread = new Thread(() -> {
-                sendMessages(process.getErrorStream(), TypeOfMessage.ERROR);
+                sendMessages(uuid, process.getErrorStream(), TypeOfMessage.ERROR);
             });
 
             outputThread.start();
@@ -72,7 +71,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             }
             outputThread.join();
             errorOutputThread.join();
-            simpMessagingTemplate.convertAndSend("/topic/script-output", new Message(String.valueOf(exitCode), TypeOfMessage.EXIT_CODE));
+            simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(String.valueOf(exitCode), TypeOfMessage.EXIT_CODE));
             return new ScriptRunResponse(uuid, System.currentTimeMillis() - startTime);
         } catch (IOException | InterruptedException e) {
             System.out.println(e.getMessage());
