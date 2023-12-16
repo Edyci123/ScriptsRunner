@@ -233,7 +233,7 @@ export const EditorPage: React.FC = () => {
                             onKeyDown={(e) => {
                                 if (e.key === "Tab") {
                                     e.preventDefault();
-                                    document.execCommand('insertHTML', false, "    ");
+                                    document.execCommand('insertText', false, "    ");
                                 }
                             }}
                             data-gramm="false"
