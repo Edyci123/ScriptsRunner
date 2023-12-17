@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { axios } from "../../services/axios";
 
-const currentUUID = uuidv4();
+const currentUUID = "5b7b783e-066c-4ade-854f-6aece266afea";
 
 export const EditorPage: React.FC = () => {
     const [language, setLanguage] = useState<"kts" | "swift">("kts");
