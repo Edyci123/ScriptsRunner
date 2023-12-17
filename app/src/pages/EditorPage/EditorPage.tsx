@@ -30,6 +30,7 @@ export const EditorPage: React.FC = () => {
     const indexRef = useRef(null);
     const outputRef = useRef(null);
     const [errors, setErrors] = useState<number[]>([]);
+    const [isRunMultiple, setIsRunMultiple] = useState(false);
 
     useSubscription("/topic/script-output/" + currentUUID, (msg) => {
         setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
