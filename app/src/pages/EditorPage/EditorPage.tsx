@@ -1,15 +1,18 @@
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
     Button,
     CircularProgress,
-    Grid
+    FormControl,
+    Grid,
+    InputLabel,
+    OutlinedInput
 } from "@mui/material";
 import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { useSubscription } from "react-stomp-hooks";
-import styles from "./EditorPage.module.scss";
-import { v4 as uuidv4 } from 'uuid';
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { v4 as uuidv4 } from "uuid";
 import { axios } from "../../services/axios";
+import styles from "./EditorPage.module.scss";
 
 const currentUUID = uuidv4();
 
@@ -22,7 +25,7 @@ export const EditorPage: React.FC = () => {
     >([]);
     const [isLoading, setIsLoading] = useState(false);
     const [numRows, setNumRows] = useState(1);
-    
+
     const [completed, setCompleted] = useState(false);
 
     const contentRef = useRef(null);
@@ -30,7 +33,7 @@ export const EditorPage: React.FC = () => {
     const indexRef = useRef(null);
     const outputRef = useRef(null);
     const [errors, setErrors] = useState<number[]>([]);
-    const [isRunMultiple, setIsRunMultiple] = useState(false);
+    const [countRuns, setCountRuns] = useState(1);
 
     useSubscription("/topic/script-output/" + currentUUID, (msg) => {
         setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
@@ -72,7 +75,10 @@ export const EditorPage: React.FC = () => {
                 : Math.max(
                       1,
                       // @ts-ignore
-                      contentRef.current.innerHTML.split("<div").filter(val => val !== '').length
+                      contentRef.current.innerHTML
+                          .split("<div")
+                          // @ts-ignore
+                          .filter((val) => val !== "").length
                   )
         );
 
@@ -113,7 +119,7 @@ export const EditorPage: React.FC = () => {
         let trimmedContent: string[] = [];
         let cnt = 0;
         content.forEach((val) => {
-            if (val === '') {
+            if (val === "") {
                 cnt++;
                 if (cnt % 2 === 1) {
                     trimmedContent.push("");
@@ -128,7 +134,7 @@ export const EditorPage: React.FC = () => {
         await axios.post(
             "/run",
             // @ts-ignore
-            { scriptContent: trimmedContent.join("\n"), uuid: currentUUID},
+            { scriptContent: trimmedContent.join("\n"), uuid: currentUUID },
             { params: { type: "KTS" } }
         );
         setCompleted(true);
@@ -153,6 +159,10 @@ export const EditorPage: React.FC = () => {
                         errors.push(+newError);
                         setErrors([...errors]);
                     }
+                    /// append the index to a map that will have the key index and the value the scroll value for the editor
+                    /// then when output is complete add the calssNames
+                    /// and the action for onClick, every div will have an onClick and inside it check
+                    /// if the index should redirect anywhere
                 }
             });
             setCompleted(false);
@@ -195,7 +205,10 @@ export const EditorPage: React.FC = () => {
                                 </>
                             )}
                         </Button>
-                        <div></div>
+                        <FormControl sx={{ ml: 2 }} size="small">
+                            <InputLabel>Count</InputLabel>
+                            <OutlinedInput type="number" label="Count" />
+                        </FormControl>
                     </div>
                 </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
@@ -234,7 +247,11 @@ export const EditorPage: React.FC = () => {
                             onKeyDown={(e) => {
                                 if (e.key === "Tab") {
                                     e.preventDefault();
-                                    document.execCommand('insertText', false, "    ");
+                                    document.execCommand(
+                                        "insertText",
+                                        false,
+                                        "    "
+                                    );
                                 }
                             }}
                             data-gramm="false"
@@ -270,7 +287,13 @@ export const EditorPage: React.FC = () => {
                                                 ? "10px"
                                                 : 0,
                                     }}
+                                    id={index.toString()}
                                     key={index}
+                                    onClick={() => {
+                                        if (val.typeOfMessage === "ERROR") {
+                                            
+                                        }
+                                    }}
                                 >
                                     <span className={styles[className]}>
                                         {`[${val.typeOfMessage}]`}{" "}
