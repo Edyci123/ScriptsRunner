@@ -5,7 +5,7 @@ import {
     FormControl,
     Grid,
     InputLabel,
-    OutlinedInput
+    OutlinedInput,
 } from "@mui/material";
 import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
@@ -33,7 +33,10 @@ export const EditorPage: React.FC = () => {
     const indexRef = useRef(null);
     const outputRef = useRef(null);
     const [errors, setErrors] = useState<number[]>([]);
-    const [countRuns, setCountRuns] = useState(1);
+    const [errorToScroll, setErrorToScroll] = useState<Map<number, number>>(
+        new Map()
+    );
+    const [countRuns, setCountRuns] = useState("");
 
     useSubscription("/topic/script-output/" + currentUUID, (msg) => {
         setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
@@ -64,6 +67,7 @@ export const EditorPage: React.FC = () => {
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
         if (errors.length !== 0) {
             setErrors([]);
+            setErrorToScroll(new Map());
         }
         const langObj = lang[language];
         let html = e.currentTarget.innerHTML;
@@ -155,6 +159,12 @@ export const EditorPage: React.FC = () => {
                         .at(1)
                         ?.split(":")
                         .at(1);
+
+                    if (newError) {
+                        errorToScroll.set(index, 10 * +newError);
+                        setErrorToScroll(new Map(errorToScroll));
+                    }
+
                     if (newError && errors.includes(+newError) === false) {
                         errors.push(+newError);
                         setErrors([...errors]);
@@ -169,19 +179,23 @@ export const EditorPage: React.FC = () => {
         }
     }, [completed]);
 
+    const moveToScroll = (scrollTo: number) => {
+        // @ts-ignore
+        if (scrollTo > contentRef.current.scrollHeight) {
+            // @ts-ignore
+            scrollTo = contentRef.current.scrollHeight;
+        }
+
+        // @ts-ignore
+        colorRef.current.scrollTop = contentRef.current.scrollTop = scrollTo;
+    };
+
+    console.log(errorToScroll);
+
     useEffect(() => {
         if (completed === false && errors.length > 0) {
             let scrollTo = 10 * Math.min(...errors);
-
-            // @ts-ignore
-            if (scrollTo > contentRef.current.scrollHeight) {
-                // @ts-ignore
-                scrollTo = contentRef.current.scrollHeight;
-            }
-
-            // @ts-ignore
-            colorRef.current.scrollTop = contentRef.current.scrollTop =
-                scrollTo;
+            moveToScroll(scrollTo);
         }
     }, [completed, errors]);
 
@@ -207,7 +221,13 @@ export const EditorPage: React.FC = () => {
                         </Button>
                         <FormControl sx={{ ml: 2 }} size="small">
                             <InputLabel>Count</InputLabel>
-                            <OutlinedInput type="number" label="Count" />
+                            <OutlinedInput
+                                label="Count"
+                                value={countRuns}
+                                onChange={(e) => {
+                                    setCountRuns(e.target.value);
+                                }}
+                            />
                         </FormControl>
                     </div>
                 </Grid>
@@ -286,19 +306,24 @@ export const EditorPage: React.FC = () => {
                                             index === output.length - 1
                                                 ? "10px"
                                                 : 0,
+                                        cursor: errorToScroll.has(index)
+                                            ? "pointer"
+                                            : undefined,
                                     }}
                                     id={index.toString()}
                                     key={index}
                                     onClick={() => {
-                                        if (val.typeOfMessage === "ERROR") {
-                                            
+                                        if (errorToScroll.has(index)) {
+                                            const val =
+                                                errorToScroll.get(index);
+                                            val && moveToScroll(val);
                                         }
                                     }}
                                 >
                                     <span className={styles[className]}>
                                         {`[${val.typeOfMessage}]`}{" "}
                                     </span>
-                                    {val.content}
+                                    <span>{val.content}</span>
                                 </div>
                             );
                         })}
