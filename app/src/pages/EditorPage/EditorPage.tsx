@@ -152,6 +152,7 @@ export const EditorPage: React.FC = () => {
 
     useEffect(() => {
         if (completed) {
+            console.log("OUTPUIT", output)
             output.forEach((val, index) => {
                 if (currentUUID && val.typeOfMessage === "ERROR") {
                     let newError = val.content
@@ -161,7 +162,14 @@ export const EditorPage: React.FC = () => {
                         .at(1);
 
                     if (newError) {
-                        errorToScroll.set(index, 10 * +newError);
+                        console.log(+newError - 20);
+                        const val = +newError - 20;
+                        let scrollTo = 0;
+                        if (val > 0) {
+                            scrollTo = 10.5 + (val - 1) * 16;
+                        }
+
+                        errorToScroll.set(index, Math.max(1, scrollTo));
                         setErrorToScroll(new Map(errorToScroll));
                     }
 
@@ -169,10 +177,6 @@ export const EditorPage: React.FC = () => {
                         errors.push(+newError);
                         setErrors([...errors]);
                     }
-                    /// append the index to a map that will have the key index and the value the scroll value for the editor
-                    /// then when output is complete add the calssNames
-                    /// and the action for onClick, every div will have an onClick and inside it check
-                    /// if the index should redirect anywhere
                 }
             });
             setCompleted(false);
@@ -187,17 +191,25 @@ export const EditorPage: React.FC = () => {
         }
 
         // @ts-ignore
-        colorRef.current.scrollTop = contentRef.current.scrollTop = scrollTo;
+       contentRef.current.scrollTop = scrollTo;
     };
 
     console.log(errorToScroll);
 
     useEffect(() => {
         if (completed === false && errors.length > 0) {
-            let scrollTo = 10 * Math.min(...errors);
-            moveToScroll(scrollTo);
+            let newError = Math.min(...errors);
+            const val = +newError - 20;
+            let scrollTo = 0;
+            if (val > 0) {
+                scrollTo = 10.5 + (val - 1) * 16;
+            }
+            moveToScroll(Math.max(1, scrollTo));
         }
     }, [completed, errors]);
+
+    // // @ts-ignore
+    // console.log(contentRef.current.scrollTop);
 
     return (
         <>
@@ -323,7 +335,15 @@ export const EditorPage: React.FC = () => {
                                     <span className={styles[className]}>
                                         {`[${val.typeOfMessage}]`}{" "}
                                     </span>
-                                    <span>{val.content}</span>
+                                    <span
+                                        className={
+                                            errorToScroll.has(index)
+                                                ? styles.link
+                                                : undefined
+                                        }
+                                    >
+                                        {val.content}
+                                    </span>
                                 </div>
                             );
                         })}

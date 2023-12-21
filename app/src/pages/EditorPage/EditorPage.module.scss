@@ -111,3 +111,12 @@
 .output_success {
     color: #56ae57;
 }
+
+.link {
+    color: blue;
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
