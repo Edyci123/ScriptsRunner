@@ -152,7 +152,7 @@ export const EditorPage: React.FC = () => {
 
     useEffect(() => {
         if (completed) {
-            console.log("OUTPUIT", output)
+            console.log("OUTPUIT", output);
             output.forEach((val, index) => {
                 if (currentUUID && val.typeOfMessage === "ERROR") {
                     let newError = val.content
@@ -191,7 +191,7 @@ export const EditorPage: React.FC = () => {
         }
 
         // @ts-ignore
-       contentRef.current.scrollTop = scrollTo;
+        contentRef.current.scrollTop = scrollTo;
     };
 
     console.log(errorToScroll);
@@ -301,6 +301,11 @@ export const EditorPage: React.FC = () => {
                             if (val.typeOfMessage === "ERROR") {
                                 className = "output_error";
                             }
+
+                            if (val.typeOfMessage === "EXECUTION_TIME") {
+                                className = "output_time";
+                            }
+
                             if (val.typeOfMessage === "EXIT_CODE") {
                                 if (val.content === "0") {
                                     className = "output_success";

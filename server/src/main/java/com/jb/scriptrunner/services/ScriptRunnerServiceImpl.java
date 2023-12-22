@@ -8,6 +8,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.UUID;
 
 @Service
@@ -28,8 +30,11 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 System.out.println(line);
+                if (line.startsWith("EXECTIME")) {
+                    simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(line.replace("EXECTIME", ""), TypeOfMessage.EXECUTION_TIME));
+                    continue;
+                }
                 simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(line, typeOfMessage));
-
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -40,11 +45,44 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
     @Override
     public ScriptRunResponse runScript(UUID uuid, String script, String command) throws Exception {
         try {
+            File template = new File("src/main/resources/ExecTimeTemplate.kts");
+
             File file = new File("src/main/resources/" + uuid + ".kts");
             String path = file.getAbsolutePath();
 
+            boolean isContent = false;
+            ArrayList<String> imports = new ArrayList<>();
+            ArrayList<String> content = new ArrayList<>();
+
+            for (String val : script.split("\n")) {
+                if (!val.matches("(\\s+)?import(\\s+)?.+(\\s+)?") && !val.matches("(\\s+)?")) {
+                    isContent = true;
+                }
+
+                if (isContent) {
+                    content.add(val);
+                } else {
+                    imports.add(val);
+                }
+            }
+
+            ArrayList<String> execTimeScript = new ArrayList<>();
+
+            Scanner reader = new Scanner(template);
+            while (reader.hasNextLine()) {
+                String data = reader.nextLine();
+
+                if (data.equals("$$$imports$$$")) {
+                    execTimeScript.add(String.join("\n", imports));
+                } else if (data.equals("$$$content$$$")) {
+                    execTimeScript.add(String.join("", content));
+                } else {
+                    execTimeScript.add(data);
+                }
+            }
+
             try (OutputStream outputStream = new FileOutputStream(file)) {
-                outputStream.write(script.replaceAll("\\u00a0", " ").getBytes());
+                outputStream.write(String.join("\n", execTimeScript).replaceAll("\\u00a0", " ").getBytes());
             }
 
             command += " " + path;
