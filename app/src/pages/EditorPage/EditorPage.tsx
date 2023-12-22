@@ -152,7 +152,6 @@ export const EditorPage: React.FC = () => {
 
     useEffect(() => {
         if (completed) {
-            console.log("OUTPUIT", output);
             output.forEach((val, index) => {
                 if (currentUUID && val.typeOfMessage === "ERROR") {
                     let newError = val.content
@@ -162,7 +161,6 @@ export const EditorPage: React.FC = () => {
                         .at(1);
 
                     if (newError) {
-                        console.log(+newError - 20);
                         const val = +newError - 20;
                         let scrollTo = 0;
                         if (val > 0) {
@@ -194,8 +192,6 @@ export const EditorPage: React.FC = () => {
         contentRef.current.scrollTop = scrollTo;
     };
 
-    console.log(errorToScroll);
-
     useEffect(() => {
         if (completed === false && errors.length > 0) {
             let newError = Math.min(...errors);
@@ -207,9 +203,6 @@ export const EditorPage: React.FC = () => {
             moveToScroll(Math.max(1, scrollTo));
         }
     }, [completed, errors]);
-
-    // // @ts-ignore
-    // console.log(contentRef.current.scrollTop);
 
     return (
         <>

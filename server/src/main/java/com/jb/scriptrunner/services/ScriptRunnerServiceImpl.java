@@ -30,6 +30,11 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 System.out.println(line);
+                if (typeOfMessage.equals(TypeOfMessage.ERROR)) {
+                    /// here i should separate an error message in 3 parts, the the location, the index of the line,
+                    // and the error after, then I should see where the index is from, if it's from the imports
+                    // I shouldn't modify anything, if it is from the content, i should decrease the index with 1
+                }
                 if (line.startsWith("EXECTIME")) {
                     simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(line.replace("EXECTIME", ""), TypeOfMessage.EXECUTION_TIME));
                     continue;
