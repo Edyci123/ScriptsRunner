@@ -22,24 +22,31 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    private void sendMessages(UUID uuid, InputStream inputStream, TypeOfMessage typeOfMessage) {
+    private void sendMessages(UUID uuid, InputStream inputStream, TypeOfMessage typeOfMessage, int importsLen) {
         try {
+            String destinationSocket = "/topic/script-output/" + uuid;
             InputStreamReader errorStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(errorStreamReader);
 
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 System.out.println(line);
-                if (typeOfMessage.equals(TypeOfMessage.ERROR)) {
-                    /// here i should separate an error message in 3 parts, the the location, the index of the line,
+                if (typeOfMessage.equals(TypeOfMessage.ERROR) && line.contains(uuid.toString())) {
+                    /// here I should separate an error message in 3 parts, the location, the index of the line,
                     // and the error after, then I should see where the index is from, if it's from the imports
-                    // I shouldn't modify anything, if it is from the content, i should decrease the index with 1
-                }
-                if (line.startsWith("EXECTIME")) {
-                    simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(line.replace("EXECTIME", ""), TypeOfMessage.EXECUTION_TIME));
+                    // I shouldn't modify anything, if it is from the content, I should decrease the index with 1
+                    String[] splitLine = line.split(":");
+                    if (Integer.parseInt(splitLine[1]) > importsLen) {
+                        splitLine[1] = String.valueOf(Integer.parseInt(splitLine[1]) - 1);
+                    }
+                    simpMessagingTemplate.convertAndSend(destinationSocket, new Message(String.join(":", splitLine), typeOfMessage));
                     continue;
                 }
-                simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(line, typeOfMessage));
+                if (line.startsWith("EXECTIME")) {
+                    simpMessagingTemplate.convertAndSend(destinationSocket, new Message(line.replace("EXECTIME", ""), TypeOfMessage.EXECUTION_TIME));
+                    continue;
+                }
+                simpMessagingTemplate.convertAndSend(destinationSocket, new Message(line, typeOfMessage));
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -50,9 +57,10 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
     @Override
     public ScriptRunResponse runScript(UUID uuid, String script, String command) throws Exception {
         try {
-            File template = new File("src/main/resources/ExecTimeTemplate.kts");
+            String rootDir = "src/main/resources";
+            File template = new File(rootDir + "/ExecTimeTemplate.kts");
 
-            File file = new File("src/main/resources/" + uuid + ".kts");
+            File file = new File(rootDir + uuid + ".kts");
             String path = file.getAbsolutePath();
 
             boolean isContent = false;
@@ -80,7 +88,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
                 if (data.equals("$$$imports$$$")) {
                     execTimeScript.add(String.join("\n", imports));
                 } else if (data.equals("$$$content$$$")) {
-                    execTimeScript.add(String.join("", content));
+                    execTimeScript.add(String.join("\n", content));
                 } else {
                     execTimeScript.add(data);
                 }
@@ -96,11 +104,11 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             Process process = new ProcessBuilder(command.split("\\s")).start();
 
             Thread outputThread = new Thread(() -> {
-                sendMessages(uuid, process.getInputStream(), TypeOfMessage.OUTPUT);
+                sendMessages(uuid, process.getInputStream(), TypeOfMessage.OUTPUT, imports.size());
             });
 
             Thread errorOutputThread = new Thread(() -> {
-                sendMessages(uuid, process.getErrorStream(), TypeOfMessage.ERROR);
+                sendMessages(uuid, process.getErrorStream(), TypeOfMessage.ERROR, imports.size());
             });
 
             outputThread.start();
@@ -135,29 +143,29 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
 
         command += " " + path;
 
-        while (count > 0) {
-            long startTime = System.currentTimeMillis();
-            Process process = new ProcessBuilder(command.split("\\s")).start();
-
-            Thread outputThread = new Thread(() -> {
-                sendMessages(uuid, process.getInputStream(), TypeOfMessage.OUTPUT);
-            });
-
-            Thread errorOutputThread = new Thread(() -> {
-                sendMessages(uuid, process.getErrorStream(), TypeOfMessage.ERROR);
-            });
-
-            outputThread.start();
-            errorOutputThread.start();
-
-            int exitCode = process.waitFor();
-            outputThread.join();
-            errorOutputThread.join();
-            simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(String.valueOf(exitCode), TypeOfMessage.EXIT_CODE));
-            expectedTimePerScript = System.currentTimeMillis() - startTime;
-            System.out.println(count + ": " + expectedTimePerScript);
-            count--;
-        }
+//        while (count > 0) {
+//            long startTime = System.currentTimeMillis();
+//            Process process = new ProcessBuilder(command.split("\\s")).start();
+//
+//            Thread outputThread = new Thread(() -> {
+//                sendMessages(uuid, process.getInputStream(), TypeOfMessage.OUTPUT);
+//            });
+//
+//            Thread errorOutputThread = new Thread(() -> {
+//                sendMessages(uuid, process.getErrorStream(), TypeOfMessage.ERROR);
+//            });
+//
+//            outputThread.start();
+//            errorOutputThread.start();
+//
+//            int exitCode = process.waitFor();
+//            outputThread.join();
+//            errorOutputThread.join();
+//            simpMessagingTemplate.convertAndSend("/topic/script-output/" + uuid, new Message(String.valueOf(exitCode), TypeOfMessage.EXIT_CODE));
+//            expectedTimePerScript = System.currentTimeMillis() - startTime;
+//            System.out.println(count + ": " + expectedTimePerScript);
+//            count--;
+//        }
 
         if (file.delete()) {
             System.out.println("File deleted!");
