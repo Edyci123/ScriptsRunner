@@ -32,9 +32,6 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             while ((line = bufferedReader.readLine()) != null) {
                 System.out.println(line);
                 if (typeOfMessage.equals(TypeOfMessage.ERROR) && line.contains(uuid.toString())) {
-                    /// here I should separate an error message in 3 parts, the location, the index of the line,
-                    // and the error after, then I should see where the index is from, if it's from the imports
-                    // I shouldn't modify anything, if it is from the content, I should decrease the index with 1
                     String[] splitLine = line.split(":");
                     if (Integer.parseInt(splitLine[1]) > importsLen) {
                         splitLine[1] = String.valueOf(Integer.parseInt(splitLine[1]) - 1);

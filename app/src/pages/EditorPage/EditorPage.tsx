@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import { axios } from "../../services/axios";
 import styles from "./EditorPage.module.scss";
 import { OutputPane } from "./OutputPane";
+import { LinearProgressWithLabel } from "../../components/LinearProgressWithLabel";
 
 const currentUUID = uuidv4();
 
@@ -237,6 +238,9 @@ export const EditorPage: React.FC = () => {
                         </FormControl>
                     </div>
                 </Grid>
+                <Grid item xs={12}>
+                    <LinearProgressWithLabel color="success" sx={{height: 20}} value={50} />
+                </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
                     <div ref={indexRef} className={styles["index-col"]}>
                         {_.range(numRows).map((val) => {
@@ -287,12 +291,13 @@ export const EditorPage: React.FC = () => {
                     </div>
                 </Grid>
                 <Grid item xs={0.4}></Grid>
-                <Grid
-                    className={styles["editor-container"]}
-                    item
-                    xs={5.8}
-                >
-                    <OutputPane output={output} errorToScroll={errorToScroll} ref={outputRef} moveToScroll={moveToScroll} />
+                <Grid className={styles["editor-container"]} item xs={5.8}>
+                    <OutputPane
+                        output={output}
+                        errorToScroll={errorToScroll}
+                        ref={outputRef}
+                        moveToScroll={moveToScroll}
+                    />
                 </Grid>
             </Grid>
         </>
