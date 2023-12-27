@@ -20,7 +20,7 @@ import { OutputPane } from "./OutputPane";
 import { lang } from "../../services/lang";
 import { CheckBox } from "@mui/icons-material";
 
-const currentUUID = uuidv4();
+const currentUUID = "5b7b783e-066c-4ade-854f-6aece266afea";
 
 export const EditorPage: React.FC = () => {
     const [language, setLanguage] = useState<"kts" | "swift">("kts");
