@@ -1,8 +1,10 @@
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
     Button,
+    Checkbox,
     CircularProgress,
     FormControl,
+    FormControlLabel,
     Grid,
     InputLabel,
     OutlinedInput,
@@ -11,10 +13,12 @@ import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { useSubscription } from "react-stomp-hooks";
 import { v4 as uuidv4 } from "uuid";
+import { LinearProgressWithLabel } from "../../components/LinearProgressWithLabel";
 import { axios } from "../../services/axios";
 import styles from "./EditorPage.module.scss";
 import { OutputPane } from "./OutputPane";
-import { LinearProgressWithLabel } from "../../components/LinearProgressWithLabel";
+import { lang } from "../../services/lang";
+import { CheckBox } from "@mui/icons-material";
 
 const currentUUID = uuidv4();
 
@@ -39,25 +43,11 @@ export const EditorPage: React.FC = () => {
         new Map()
     );
     const [countRuns, setCountRuns] = useState("");
+    const [isOutputMutliple, setIsOutputMultiple] = useState(false);
 
     useSubscription("/topic/script-output/" + currentUUID, (msg) => {
         setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
     });
-
-    const lang = {
-        kts: {
-            equal: /(\b=\b)/g,
-            quote: /((&#39;.*?&#39;)|(&#34;.*?&#34;)|(".*?(?<!\\)")|('.*?(?<!\\)')|`)/g,
-            comm: /((\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*))/g,
-            logic: /(%=|%|\-|\+|\*|&amp;{1,2}|\|{1,2}|&lt;=|&gt;=|&lt;|&gt;|!={1,2}|={2,3})/g,
-            number: /(?<![a-zA-Z1-9_])(\d+(\.\d+)?(e\d+)?)/g,
-            kw: /(?<=^|\s*|)(?<![a-zA-Z0-9_])(as|break|class(?!\s*\=)|for|if|\!in|in|interface|\!is|is|null|object|package|return|super|this|throw|true|try|typealias|val|var|when|while|by|catch|constructor|set|setparam|where|actual|abstract|annotation|companion|const|crossinline|data|enum|expect|external|final|infix|inline|inner|internal|lateinit|noinline|open|operator|out|override|private|println|print|protected|public|reified|sealed|suspend|tailrec|vararg|field|it|delegate|dynamic|field|file|finally|get|import|init|param|property|receiver|continue|do|else|fun)(?=\b)/g,
-            round: /(\(|\))/g,
-            square: /(\[|\])/g,
-            curl: /(\{|\})/g,
-        },
-        swift: {},
-    };
 
     const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -88,26 +78,17 @@ export const EditorPage: React.FC = () => {
                   )
         );
 
-        // @ts-ignore
-        colorRef.current.scrollTop = contentRef.current.scrollTop;
-
         Object.keys(langObj).forEach((key) => {
-            html = html.replace(
-                // @ts-ignore
-                langObj[key],
-                `<i class="${language}_${key}">$1</i>`
-            );
+            html = html
+                .replace(
+                    // @ts-ignore
+                    langObj[key],
+                    `<i class="${language}_${key}">$1</i>`
+                )
+                .replaceAll('style="caret-color: black;"', "");
         });
         // @ts-ignore
-        contentRef.current.previousElementSibling.innerHTML = html
-            .replaceAll(
-                '"caret<i class="kts_logic">-</i>color: black;"</i>>',
-                ""
-            )
-            .replaceAll(
-                '"caret<i class="kts_logic">-</i>color: rgb<i class="kts_round">(</i><i class="kts_number">0</i>, <i class="kts_number">0</i>, <i class="kts_number">0</i><i class="kts_round">)</i>;"</i>>',
-                ""
-            );
+        contentRef.current.previousElementSibling.innerHTML = html;
     };
 
     const handleScroll = () => {
@@ -137,12 +118,26 @@ export const EditorPage: React.FC = () => {
         });
         setOutput([]);
         setIsLoading(true);
-        await axios.post(
-            "/run",
-            // @ts-ignore
-            { scriptContent: trimmedContent.join("\n"), uuid: currentUUID },
-            { params: { type: "KTS" } }
-        );
+        if (countRuns !== "" && parseInt(countRuns) > 1) {
+            await axios.post(
+                "/run/multiple",
+                { scriptContent: trimmedContent.join("\n"), uuid: currentUUID },
+                {
+                    params: {
+                        type: "KTS",
+                        count: countRuns,
+                        fullOutput: isOutputMutliple,
+                    },
+                }
+            );
+        } else {
+            await axios.post(
+                "/run",
+                // @ts-ignore
+                { scriptContent: trimmedContent.join("\n"), uuid: currentUUID },
+                { params: { type: "KTS" } }
+            );
+        }
         setCompleted(true);
         setIsLoading(false);
     };
@@ -229,6 +224,7 @@ export const EditorPage: React.FC = () => {
                         <FormControl sx={{ ml: 2 }} size="small">
                             <InputLabel>Count</InputLabel>
                             <OutlinedInput
+                                disabled={isLoading}
                                 label="Count"
                                 value={countRuns}
                                 onChange={(e) => {
@@ -236,10 +232,29 @@ export const EditorPage: React.FC = () => {
                                 }}
                             />
                         </FormControl>
+                        <FormControlLabel
+                            sx={{ ml: 2 }}
+                            disabled={countRuns === ""}
+                            control={
+                                <Checkbox
+                                    checked={isOutputMutliple}
+                                    onChange={(e) =>
+                                        setIsOutputMultiple(e.target.checked)
+                                    }
+                                />
+                            }
+                            label="Show all outputs"
+                            labelPlacement="end"
+                        />
                     </div>
                 </Grid>
                 <Grid item xs={12}>
-                    <LinearProgressWithLabel color="success" sx={{height: 20}} value={50} />
+                    <LinearProgressWithLabel
+                        count={countRuns ? parseInt(countRuns) : 0}
+                        uuid={currentUUID}
+                        color="success"
+                        sx={{ height: 20 }}
+                    />
                 </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
                     <div ref={indexRef} className={styles["index-col"]}>

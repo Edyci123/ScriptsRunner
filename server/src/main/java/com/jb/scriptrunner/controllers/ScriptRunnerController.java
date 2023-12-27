@@ -32,11 +32,11 @@ public class ScriptRunnerController {
 
     @PostMapping("/run/multiple")
     public ResponseEntity<?> runScriptMultipleTimes
-            (@RequestParam String type, @RequestParam int count, @RequestBody ScriptRunRequest scriptRunRequest) {
+            (@RequestParam String type, @RequestParam int count, @RequestBody ScriptRunRequest scriptRunRequest, @RequestParam boolean fullOutput) {
         try {
             scriptRunnerService.runMultipleTimes(
                     scriptRunRequest.getUuid(), scriptRunRequest.getScriptContent(),
-                    CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)), count);
+                    CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)), count, fullOutput);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
