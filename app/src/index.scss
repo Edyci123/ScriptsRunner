@@ -5,6 +5,7 @@ body {
         "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    caret-color: black !important;
 }
 
 code {
@@ -12,27 +13,30 @@ code {
         monospace;
 }
 
-div {
-  caret-color: black;
-}
+// div {
+//     caret-color: black;
+// }
 
 i.kts_quote {
     color: #cc856b;
+    i {
+        color: #cc856b !important;
+    }
 }
 i.kts_decl {
-    color: hsl(200, 75%, 70%);
+    color: #93ceec;
 }
 i.kts_kw {
-    color: hsl(300, 75%, 70%);
+    color: #ef8fef;
 }
 i.kts_round {
-    color: hsl(210, 75%, 70%);
+    color: #79b3ec;
 }
 i.kts_square {
-    color: hsl(230, 75%, 70%);
+    color: #798cec;
 }
 i.kts_curl {
-    color: hsl(250, 75%, 70%);
+    color: #8c79ec;
 }
 i.kts_number {
     color: #6baf6e;
@@ -44,8 +48,12 @@ i.kts_equal {
     color: #6b8acc;
 }
 i.kts_comm {
-    color: hsl(200, 10%, 45%);
-    font-style: italic;
+    color: #bebebe !important;
+    font-style: italic !important;
+    i {
+        color: #bebebe !important;
+        font-style: italic !important;
+    }
 }
 i.kts_comm > * {
     color: inherit;

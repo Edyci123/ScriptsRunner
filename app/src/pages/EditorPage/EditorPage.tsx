@@ -1,15 +1,24 @@
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
     Button,
+    Checkbox,
     CircularProgress,
-    Grid
+    FormControl,
+    FormControlLabel,
+    Grid,
+    InputLabel,
+    OutlinedInput,
 } from "@mui/material";
 import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { useSubscription } from "react-stomp-hooks";
-import styles from "./EditorPage.module.scss";
-import { v4 as uuidv4 } from 'uuid';
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { v4 as uuidv4 } from "uuid";
+import { LinearProgressWithLabel } from "../../components/LinearProgressWithLabel";
 import { axios } from "../../services/axios";
+import styles from "./EditorPage.module.scss";
+import { OutputPane } from "./OutputPane";
+import { lang } from "../../services/lang";
+import { CheckBox } from "@mui/icons-material";
 
 const currentUUID = "5b7b783e-066c-4ade-854f-6aece266afea";
 
@@ -22,7 +31,7 @@ export const EditorPage: React.FC = () => {
     >([]);
     const [isLoading, setIsLoading] = useState(false);
     const [numRows, setNumRows] = useState(1);
-    
+
     const [completed, setCompleted] = useState(false);
 
     const contentRef = useRef(null);
@@ -30,25 +39,15 @@ export const EditorPage: React.FC = () => {
     const indexRef = useRef(null);
     const outputRef = useRef(null);
     const [errors, setErrors] = useState<number[]>([]);
+    const [errorToScroll, setErrorToScroll] = useState<Map<number, number>>(
+        new Map()
+    );
+    const [countRuns, setCountRuns] = useState("");
+    const [isOutputMutliple, setIsOutputMultiple] = useState(false);
 
     useSubscription("/topic/script-output/" + currentUUID, (msg) => {
         setOutput((prevOutput) => [...prevOutput, JSON.parse(msg.body)]);
     });
-
-    const lang = {
-        kts: {
-            equal: /(\b=\b)/g,
-            quote: /((&#39;.*?&#39;)|(&#34;.*?&#34;)|(".*?(?<!\\)")|('.*?(?<!\\)')|`)/g,
-            comm: /((\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\/\/.*))/g,
-            logic: /(%=|%|\-|\+|\*|&amp;{1,2}|\|{1,2}|&lt;=|&gt;=|&lt;|&gt;|!={1,2}|={2,3})/g,
-            number: /(?<![a-zA-Z1-9_])(\d+(\.\d+)?(e\d+)?)/g,
-            kw: /(?<=^|\s*|)(?<![a-zA-Z0-9_])(as|break|class(?!\s*\=)|for|if|\!in|in|interface|\!is|is|null|object|package|return|super|this|throw|true|try|typealias|val|var|when|while|by|catch|constructor|set|setparam|where|actual|abstract|annotation|companion|const|crossinline|data|enum|expect|external|final|infix|inline|inner|internal|lateinit|noinline|open|operator|out|override|private|println|print|protected|public|reified|sealed|suspend|tailrec|vararg|field|it|delegate|dynamic|field|file|finally|get|import|init|param|property|receiver|continue|do|else|fun)(?=\b)/g,
-            round: /(\(|\))/g,
-            square: /(\[|\])/g,
-            curl: /(\{|\})/g,
-        },
-        swift: {},
-    };
 
     const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -60,6 +59,7 @@ export const EditorPage: React.FC = () => {
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
         if (errors.length !== 0) {
             setErrors([]);
+            setErrorToScroll(new Map());
         }
         const langObj = lang[language];
         let html = e.currentTarget.innerHTML;
@@ -71,30 +71,24 @@ export const EditorPage: React.FC = () => {
                 : Math.max(
                       1,
                       // @ts-ignore
-                      contentRef.current.innerHTML.split("<div").filter(val => val !== '').length
+                      contentRef.current.innerHTML
+                          .split("<div")
+                          // @ts-ignore
+                          .filter((val) => val !== "").length
                   )
         );
 
-        // @ts-ignore
-        colorRef.current.scrollTop = contentRef.current.scrollTop;
-
         Object.keys(langObj).forEach((key) => {
-            html = html.replace(
-                // @ts-ignore
-                langObj[key],
-                `<i class="${language}_${key}">$1</i>`
-            );
+            html = html
+                .replace(
+                    // @ts-ignore
+                    langObj[key],
+                    `<i class="${language}_${key}">$1</i>`
+                )
+                .replaceAll('style="caret-color: black;"', "");
         });
         // @ts-ignore
-        contentRef.current.previousElementSibling.innerHTML = html
-            .replaceAll(
-                '"caret<i class="kts_logic">-</i>color: black;"</i>>',
-                ""
-            )
-            .replaceAll(
-                '"caret<i class="kts_logic">-</i>color: rgb<i class="kts_round">(</i><i class="kts_number">0</i>, <i class="kts_number">0</i>, <i class="kts_number">0</i><i class="kts_round">)</i>;"</i>>',
-                ""
-            );
+        contentRef.current.previousElementSibling.innerHTML = html;
     };
 
     const handleScroll = () => {
@@ -112,7 +106,7 @@ export const EditorPage: React.FC = () => {
         let trimmedContent: string[] = [];
         let cnt = 0;
         content.forEach((val) => {
-            if (val === '') {
+            if (val === "") {
                 cnt++;
                 if (cnt % 2 === 1) {
                     trimmedContent.push("");
@@ -124,12 +118,26 @@ export const EditorPage: React.FC = () => {
         });
         setOutput([]);
         setIsLoading(true);
-        await axios.post(
-            "/run",
-            // @ts-ignore
-            { scriptContent: trimmedContent.join("\n"), uuid: currentUUID},
-            { params: { type: "KTS" } }
-        );
+        if (countRuns !== "" && parseInt(countRuns) > 1) {
+            await axios.post(
+                "/run/multiple",
+                { scriptContent: trimmedContent.join("\n"), uuid: currentUUID },
+                {
+                    params: {
+                        type: "KTS",
+                        count: countRuns,
+                        fullOutput: isOutputMutliple,
+                    },
+                }
+            );
+        } else {
+            await axios.post(
+                "/run",
+                // @ts-ignore
+                { scriptContent: trimmedContent.join("\n"), uuid: currentUUID },
+                { params: { type: "KTS" } }
+            );
+        }
         setCompleted(true);
         setIsLoading(false);
     };
@@ -148,6 +156,18 @@ export const EditorPage: React.FC = () => {
                         .at(1)
                         ?.split(":")
                         .at(1);
+
+                    if (newError) {
+                        const val = +newError - 20;
+                        let scrollTo = 0;
+                        if (val > 0) {
+                            scrollTo = 10.5 + (val - 1) * 16;
+                        }
+
+                        errorToScroll.set(index, Math.max(1, scrollTo));
+                        setErrorToScroll(new Map(errorToScroll));
+                    }
+
                     if (newError && errors.includes(+newError) === false) {
                         errors.push(+newError);
                         setErrors([...errors]);
@@ -158,19 +178,26 @@ export const EditorPage: React.FC = () => {
         }
     }, [completed]);
 
+    const moveToScroll = (scrollTo: number) => {
+        // @ts-ignore
+        if (scrollTo > contentRef.current.scrollHeight) {
+            // @ts-ignore
+            scrollTo = contentRef.current.scrollHeight;
+        }
+
+        // @ts-ignore
+        contentRef.current.scrollTop = scrollTo;
+    };
+
     useEffect(() => {
         if (completed === false && errors.length > 0) {
-            let scrollTo = 10 * Math.min(...errors);
-
-            // @ts-ignore
-            if (scrollTo > contentRef.current.scrollHeight) {
-                // @ts-ignore
-                scrollTo = contentRef.current.scrollHeight;
+            let newError = Math.min(...errors);
+            const val = +newError - 20;
+            let scrollTo = 0;
+            if (val > 0) {
+                scrollTo = 10.5 + (val - 1) * 16;
             }
-
-            // @ts-ignore
-            colorRef.current.scrollTop = contentRef.current.scrollTop =
-                scrollTo;
+            moveToScroll(Math.max(1, scrollTo));
         }
     }, [completed, errors]);
 
@@ -194,8 +221,40 @@ export const EditorPage: React.FC = () => {
                                 </>
                             )}
                         </Button>
-                        <div></div>
+                        <FormControl sx={{ ml: 2 }} size="small">
+                            <InputLabel>Count</InputLabel>
+                            <OutlinedInput
+                                disabled={isLoading}
+                                label="Count"
+                                value={countRuns}
+                                onChange={(e) => {
+                                    setCountRuns(e.target.value);
+                                }}
+                            />
+                        </FormControl>
+                        <FormControlLabel
+                            sx={{ ml: 2 }}
+                            disabled={countRuns === ""}
+                            control={
+                                <Checkbox
+                                    checked={isOutputMutliple}
+                                    onChange={(e) =>
+                                        setIsOutputMultiple(e.target.checked)
+                                    }
+                                />
+                            }
+                            label="Show all outputs"
+                            labelPlacement="end"
+                        />
                     </div>
+                </Grid>
+                <Grid item xs={12}>
+                    <LinearProgressWithLabel
+                        count={countRuns ? parseInt(countRuns) : 0}
+                        uuid={currentUUID}
+                        color="success"
+                        sx={{ height: 20 }}
+                    />
                 </Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
                     <div ref={indexRef} className={styles["index-col"]}>
@@ -233,7 +292,11 @@ export const EditorPage: React.FC = () => {
                             onKeyDown={(e) => {
                                 if (e.key === "Tab") {
                                     e.preventDefault();
-                                    document.execCommand('insertText', false, "    ");
+                                    document.execCommand(
+                                        "insertText",
+                                        false,
+                                        "    "
+                                    );
                                 }
                             }}
                             data-gramm="false"
@@ -244,41 +307,12 @@ export const EditorPage: React.FC = () => {
                 </Grid>
                 <Grid item xs={0.4}></Grid>
                 <Grid className={styles["editor-container"]} item xs={5.8}>
-                    <div ref={outputRef} className={styles.output}>
-                        {output.map((val, index) => {
-                            let className = "output_standard";
-
-                            if (val.typeOfMessage === "ERROR") {
-                                className = "output_error";
-                            }
-                            if (val.typeOfMessage === "EXIT_CODE") {
-                                if (val.content === "0") {
-                                    className = "output_success";
-                                } else {
-                                    className = "output_fail";
-                                }
-                            }
-
-                            return (
-                                <div
-                                    style={{
-                                        marginTop: index === 0 ? "8px" : 0,
-                                        marginLeft: "10px",
-                                        marginBottom:
-                                            index === output.length - 1
-                                                ? "10px"
-                                                : 0,
-                                    }}
-                                    key={index}
-                                >
-                                    <span className={styles[className]}>
-                                        {`[${val.typeOfMessage}]`}{" "}
-                                    </span>
-                                    {val.content}
-                                </div>
-                            );
-                        })}
-                    </div>
+                    <OutputPane
+                        output={output}
+                        errorToScroll={errorToScroll}
+                        ref={outputRef}
+                        moveToScroll={moveToScroll}
+                    />
                 </Grid>
             </Grid>
         </>

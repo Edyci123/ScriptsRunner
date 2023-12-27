@@ -4,7 +4,8 @@ public enum TypeOfMessage {
 
     OUTPUT("OUTPUT"),
     ERROR("ERROR"),
-    EXIT_CODE("EXIT_CODE");
+    EXIT_CODE("EXIT_CODE"),
+    EXECUTION_TIME("EXECUTION_TIME");
 
     public final String label;
 

@@ -79,7 +79,7 @@
     color: transparent;
 }
 .editor_content:focus {
-    outline: 1px solid hsl(220, 16%, 19%);
+    outline: 1px solid black;
 }
 
 .editor_colors {
@@ -104,10 +104,23 @@
     color: #6b8acc;
 }
 
+.output_time {
+    color: #cc856b;
+}
+
 .output_fail {
     color: #800614;
 }
 
 .output_success {
     color: #56ae57;
+}
+
+.link {
+    color: blue;
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
 }

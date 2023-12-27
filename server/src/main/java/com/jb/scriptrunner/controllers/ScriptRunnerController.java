@@ -21,9 +21,23 @@ public class ScriptRunnerController {
     @PostMapping("/run")
     public ResponseEntity<?> runScript(@RequestParam String type, @RequestBody ScriptRunRequest scriptRunRequest) {
         try {
-            System.out.println(scriptRunRequest.getUuid());
-            ScriptRunResponse scriptRunResponse = scriptRunnerService.runScript(scriptRunRequest.getUuid(), scriptRunRequest.getScriptContent(), CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)));
+            ScriptRunResponse scriptRunResponse = scriptRunnerService.runScript(
+                    scriptRunRequest.getUuid(), scriptRunRequest.getScriptContent(),
+                    CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)));
             return ResponseEntity.ok().body(scriptRunResponse);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/run/multiple")
+    public ResponseEntity<?> runScriptMultipleTimes
+            (@RequestParam String type, @RequestParam int count, @RequestBody ScriptRunRequest scriptRunRequest, @RequestParam boolean fullOutput) {
+        try {
+            scriptRunnerService.runMultipleTimes(
+                    scriptRunRequest.getUuid(), scriptRunRequest.getScriptContent(),
+                    CommandsUtil.getCommands(TypeOfFile.valueOfLabel(type)), count, fullOutput);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }

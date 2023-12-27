@@ -8,4 +8,6 @@ public abstract class ScriptRunnerService {
 
     public abstract ScriptRunResponse runScript(UUID uuid, String script, String command) throws Exception;
 
+    public abstract void runMultipleTimes(UUID uuid, String script, String command, int count, boolean fullOutput) throws Exception;
+
 }
