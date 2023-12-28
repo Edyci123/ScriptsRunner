@@ -47,7 +47,7 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
                     String[] splitLine = line.split(":");
                     int errorLine = Integer.parseInt(splitLine[1]);
                     if (errorLine > importsLen) {
-                        splitLine[1] = String.valueOf(Integer.parseInt(splitLine[1]) - 1);
+                        splitLine[1] = String.valueOf(Integer.parseInt(splitLine[1]) - 1 - (importsLen == 0 ? 1 : 0));
                     }
                     if (errorLine == importsLen + 1 || errorLine >= importsLen + 1 + contentLen + 1) {
                         wrongError = 2;
@@ -106,7 +106,9 @@ public class ScriptRunnerServiceImpl extends ScriptRunnerService {
             outputStream.write(String.join("\n", execTimeScript).replaceAll("\\u00a0", " ")
                     .getBytes());
         }
-
+        if (imports.size() == 1 && imports.get(0).isEmpty()) {
+            return new TwoSizes(0, content.size());
+        }
         return new TwoSizes(imports.size(), content.size());
     }
 

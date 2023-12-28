@@ -103,6 +103,10 @@ export const EditorPage: React.FC = () => {
     const handleRunCode = async () => {
         // @ts-ignore
         let content: string[] = colorRef.current.innerText.split("\n");
+        if (errors.length !== 0) {
+            setErrors([]);
+            setErrorToScroll(new Map());
+        }
         let trimmedContent: string[] = [];
         let cnt = 0;
         content.forEach((val) => {
