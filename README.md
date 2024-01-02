@@ -28,12 +28,12 @@ If you don't have intellij you can do the following:
 To run it on UNIX based systems:
 ```
 cd ./server/
-./mnvw
+./mnvw spring-boot:run"
 ```
 On Windows:
 ```
 cd ./server/
-./mnvw.cmd
+./mvnw.cmd spring-boot:run
 ```
 
 ### TO RUN THE FRONTEND:
